@@ -66,6 +66,8 @@ License along with this program. If not, see
 
     failure :: String -> TestResult
 
+    pickFirst :: forall e. TestUnit (ref :: Ref | e) -> TestUnit (ref :: Ref | e) -> TestUnit (ref :: Ref | e)
+
     runTest :: forall e. Test (testOutput :: TestOutput | e) -> Eff (testOutput :: TestOutput | e) Unit
 
     success :: TestResult
@@ -75,3 +77,5 @@ License along with this program. If not, see
     testC :: forall e. ContT Unit (Eff e) TestResult -> Assertion e
 
     testFn :: forall e. ((TestResult -> Eff e Unit) -> Eff e Unit) -> Assertion e
+
+    timeout :: forall e. Number -> TestUnit (ref :: Ref, timer :: Timer.Timer | e) -> TestUnit (ref :: Ref, timer :: Timer.Timer | e)
