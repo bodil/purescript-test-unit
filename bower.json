@@ -1,0 +1,17 @@
+{
+  "name": "purescript-test-unit",
+  "version": "1.0.0",
+  "license": "LGPL-3.0+",
+  "moduleType": [
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-transformers": "~0.3.0"
+  }
+}
