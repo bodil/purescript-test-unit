@@ -14,7 +14,10 @@ main = runTest do
     assert "two plus two isn't four" $ (2 + 2) == 4
     assertFalse "two plus two is five" $ (2 + 2) == 5
   test "async asserts" do
+    -- run an assert function with a done callback
     assertFn "done callback got a falseness!" \done -> done true
+    -- do it again but fail it if it hasn't completed within 100ms
+    timeout 100 $ assertFn "yielded false" \done -> done true
 ```
 
 Run tests using [`pulp test`](https://github.com/bodil/pulp) or just

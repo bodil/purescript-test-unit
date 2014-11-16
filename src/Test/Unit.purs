@@ -5,6 +5,8 @@ module Test.Unit
   , TestResult(..)
   , success
   , failure
+  , pickFirst
+  , timeout
   , assert
   , assertFalse
   , testC
@@ -17,7 +19,9 @@ module Test.Unit
 
 import Control.Monad.Cont.Trans
 import Control.Monad.Eff
+import Control.Monad.Eff.Ref
 import Control.Monad.Error.Trans
+import qualified Control.Reactive.Timer as Timer
 import Data.Either
 import Test.Unit.Console
 
@@ -31,6 +35,20 @@ success = Right unit
 
 failure :: String -> TestResult
 failure = Left
+
+pickFirst :: forall e. TestUnit (ref :: Ref | e) -> TestUnit (ref :: Ref | e) -> TestUnit (ref :: Ref | e)
+pickFirst t1 t2 = ErrorT $ ContT $ \cb -> do
+  yielded <- newRef false
+  let yield t = runContT (runErrorT t) \res -> do
+        hasYielded <- readRef yielded
+        if hasYielded then return unit else cb res
+  yield t1
+  yield t2
+
+timeout :: forall e. Number -> TestUnit (timer :: Timer.Timer, ref :: Ref | e) -> TestUnit (timer :: Timer.Timer, ref :: Ref | e)
+timeout time test = pickFirst test $ ErrorT $ ContT \cb -> do
+  Timer.timeout time $ do cb $ failure $ "test timed out after " ++ show time ++ "ms"
+  return unit
 
 assert :: forall e. String -> Boolean -> Assertion e
 assert _ true = ErrorT $ ContT \cb -> cb success
