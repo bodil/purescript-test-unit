@@ -41,6 +41,7 @@ pickFirst t1 t2 = ErrorT $ ContT $ \cb -> do
   yielded <- newRef false
   let yield t = runContT (runErrorT t) \res -> do
         hasYielded <- readRef yielded
+        writeRef yielded true
         if hasYielded then return unit else cb res
   yield t1
   yield t2
