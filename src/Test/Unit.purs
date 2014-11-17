@@ -107,4 +107,4 @@ runTest :: forall e. Test (testOutput :: TestOutput | e) -> Eff (testOutput :: T
 runTest t =
   runContT (runErrorT t) handler
   where handler (Left reason) = exit 1
-        handler _ = return unit
+        handler _ = exit 0
