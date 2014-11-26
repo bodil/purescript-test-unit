@@ -21,7 +21,7 @@ import Control.Monad.Cont.Trans
 import Control.Monad.Eff
 import Control.Monad.Eff.Ref
 import Control.Monad.Error.Trans
-import qualified Control.Reactive.Timer as Timer
+import qualified Control.Timer as Timer
 import Data.Either
 import Test.Unit.Console
 
