@@ -13,7 +13,7 @@
   ],
   "dependencies": {
     "purescript-transformers": "~0.3.0",
-    "purescript-timers": "~0.0.6",
+    "purescript-timers": "0.0.6",
     "purescript-refs": "~0.1.2"
   }
 }
