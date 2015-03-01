@@ -4,6 +4,25 @@ import Control.Monad.Eff
 
 foreign import data TestOutput :: !
 
+foreign import hasStderr """
+  var hasStderr;
+  try { hasStderr = !!process.stderr; } catch (e) { hasStderr = false; }
+""" :: Boolean
+
+foreign import consoleLog """
+  function consoleLog(s) {
+    return function() {
+      console.log(s);
+    };
+  }""" :: forall e. String -> Eff (testOutput :: TestOutput | e) Unit
+
+foreign import consoleError """
+  function consoleError(s) {
+    return function() {
+      console.error(s);
+    };
+  }""" :: forall e. String -> Eff (testOutput :: TestOutput | e) Unit
+
 foreign import savePos """
   function savePos() {
     process.stderr.write("\x1b[s");

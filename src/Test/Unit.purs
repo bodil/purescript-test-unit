@@ -71,35 +71,47 @@ assertC reason c = ErrorT $ ContT \cb -> runContT c \res -> if res then cb (Righ
 assertFn :: forall e. String -> ((Boolean -> Eff e Unit) -> Eff e Unit) -> Assertion e
 assertFn reason f = assertC reason $ ContT f
 
+runWithStderr l t cb = do
+  savePos
+  print "→ Running: "
+  printLabel l
+  runContT (runErrorT t) handler
+  where handler (Right _) = do
+          restorePos
+          eraseLine
+          printPass "✓ Passed: "
+          printLabel l
+          print "\n"
+          cb success
+        handler error@(Left reason) = do
+          restorePos
+          eraseLine
+          printFail "☠ Failed: "
+          printLabel l
+          print " because "
+          printFail reason
+          print "\n"
+          cb error
+
+runWithConsole l t cb =
+  runContT (runErrorT t) handler
+  where handler (Right _) = do
+          consoleLog $ "✓ Passed: " ++ l
+          cb success
+        handler error@(Left reason) = do
+          consoleError $ "☠ Failed: " ++ l ++ " because " ++ reason
+          cb error
+
 test :: forall e. String -> Assertion (testOutput :: TestOutput | e) -> Test (testOutput :: TestOutput | e)
 test l t =
-  ErrorT $ ContT run
-  where run cb = do
-          savePos
-          print "→ Running: "
-          printLabel l
-          runContT (runErrorT t) handler
-          where handler (Right _) = do
-                  restorePos
-                  eraseLine
-                  printPass "✓ Passed: "
-                  printLabel l
-                  print "\n"
-                  cb success
-                handler error@(Left reason) = do
-                  restorePos
-                  eraseLine
-                  printFail "☠ Failed: "
-                  printLabel l
-                  print " because "
-                  printFail reason
-                  print "\n"
-                  cb error
+  ErrorT $ ContT if hasStderr then runWithStderr l t else runWithConsole l t
 
 foreign import exit """
   function exit(rv) {
     return function() {
-      process.exit(rv);
+      try { process.exit(rv); } catch (e) {
+        try { phantom.exit(rv); } catch (e) {}
+      }
     }
   }""" :: forall e. Number -> Eff (testOutput :: TestOutput | e) Unit
 
