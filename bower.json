@@ -12,8 +12,8 @@
     "output"
   ],
   "dependencies": {
-    "purescript-transformers": "~0.3.0",
+    "purescript-transformers": "~0.5.5",
     "purescript-timers": "0.0.8",
-    "purescript-refs": "~0.1.2"
+    "purescript-refs": "~0.1.3"
   }
 }
