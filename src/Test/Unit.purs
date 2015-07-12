@@ -3,6 +3,7 @@ module Test.Unit
   , Test(..)
   , Assertion(..)
   , TestResult(..)
+  , Timer(..)
   , success
   , failure
   , pickFirst
@@ -15,13 +16,14 @@ module Test.Unit
   , assertFn
   , test
   , runTest
+  , setTimeout
   ) where
 
+import Prelude
 import Control.Monad.Cont.Trans
 import Control.Monad.Eff
 import Control.Monad.Eff.Ref
 import Control.Monad.Error.Trans
-import qualified Control.Timer as Timer
 import Data.Either
 import Test.Unit.Console
 
@@ -36,7 +38,7 @@ success = Right unit
 failure :: String -> TestResult
 failure = Left
 
-pickFirst :: forall e. TestUnit (ref :: Ref | e) -> TestUnit (ref :: Ref | e) -> TestUnit (ref :: Ref | e)
+pickFirst :: forall e. TestUnit (ref :: REF | e) -> TestUnit (ref :: REF | e) -> TestUnit (ref :: REF | e)
 pickFirst t1 t2 = ErrorT $ ContT $ \cb -> do
   yielded <- newRef false
   let yield t = runContT (runErrorT t) \res -> do
@@ -46,9 +48,15 @@ pickFirst t1 t2 = ErrorT $ ContT $ \cb -> do
   yield t1
   yield t2
 
-timeout :: forall e. Number -> TestUnit (timer :: Timer.Timer, ref :: Ref | e) -> TestUnit (timer :: Timer.Timer, ref :: Ref | e)
-timeout time test = pickFirst test $ ErrorT $ ContT \cb -> do
-  Timer.timeout time $ do cb $ failure $ "test timed out after " ++ show time ++ "ms"
+
+foreign import data Timer :: !
+
+foreign import setTimeout :: forall e a. Int -> Eff (timer :: Timer | e) a -> Eff (timer :: Timer | e) Unit
+
+timeout :: forall e. Int -> TestUnit (timer :: Timer, ref :: REF | e) -> TestUnit (timer :: Timer, ref :: REF | e)
+timeout time test = pickFirst test $
+  ErrorT $ ContT \cb -> do
+  setTimeout time $ do cb $ failure $ "test timed out after " ++ show time ++ "ms"
   return unit
 
 assert :: forall e. String -> Boolean -> Assertion e
@@ -106,17 +114,10 @@ test :: forall e. String -> Assertion (testOutput :: TestOutput | e) -> Test (te
 test l t =
   ErrorT $ ContT if hasStderr then runWithStderr l t else runWithConsole l t
 
-foreign import exit """
-  function exit(rv) {
-    return function() {
-      try { process.exit(rv); } catch (e) {
-        try { phantom.exit(rv); } catch (e) {}
-      }
-    }
-  }""" :: forall e. Number -> Eff (testOutput :: TestOutput | e) Unit
+foreign import exit :: forall e. Int -> Eff (testOutput :: TestOutput | e) Unit
 
 runTest :: forall e. Test (testOutput :: TestOutput | e) -> Eff (testOutput :: TestOutput | e) Unit
-runTest t =
+runTest t = do
   runContT (runErrorT t) handler
   where handler (Left reason) = exit 1
         handler _ = exit 0
