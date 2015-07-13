@@ -81,20 +81,20 @@ assertFn reason f = assertC reason $ ContT f
 
 runWithStderr l t cb = do
   savePos
-  print "→ Running: "
+  print "\x2192 Running: "
   printLabel l
   runContT (runErrorT t) handler
   where handler (Right _) = do
           restorePos
           eraseLine
-          printPass "✓ Passed: "
+          printPass "\x2713 Passed: "
           printLabel l
           print "\n"
           cb success
         handler error@(Left reason) = do
           restorePos
           eraseLine
-          printFail "☠ Failed: "
+          printFail "\x2620 Failed: "
           printLabel l
           print " because "
           printFail reason
@@ -104,10 +104,10 @@ runWithStderr l t cb = do
 runWithConsole l t cb =
   runContT (runErrorT t) handler
   where handler (Right _) = do
-          consoleLog $ "✓ Passed: " ++ l
+          consoleLog $ "\x2713 Passed: " ++ l
           cb success
         handler error@(Left reason) = do
-          consoleError $ "☠ Failed: " ++ l ++ " because " ++ reason
+          consoleError $ "\x2620 Failed: " ++ l ++ " because " ++ reason
           cb error
 
 test :: forall e. String -> Assertion (testOutput :: TestOutput | e) -> Test (testOutput :: TestOutput | e)
