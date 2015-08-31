@@ -12,7 +12,7 @@
     "output"
   ],
   "dependencies": {
-    "purescript-transformers": "~0.6.1",
+    "purescript-transformers": "~0.7.0",
     "purescript-refs": "~0.2.0"
   }
 }
