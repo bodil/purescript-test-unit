@@ -32,8 +32,8 @@ import Node.FS.Aff as FS
 
 main = runTest do
   test "arithmetic" do
-    Assert.assert "two plus two isn't four" $ (2 + 2) == 4
-    Assert.assertFalse "two plus two is five" $ (2 + 2) == 5
+    Assert.assert "2 + 2 should be 4" $ (2 + 2) == 4
+    Assert.assertFalse "2 + 2 shouldn't be 5" $ (2 + 2) == 5
     Assert.equal (2 + 2) 4
     Assert.expectFailure "2 + 2 shouldn't be 5" $ Assert.equal (2 + 2) 5
   test "with async IO" do
