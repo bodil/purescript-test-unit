@@ -25,6 +25,8 @@ a do block, allowing you to easily test asynchronous code.
 ```purescript
 module Test.Main where
 
+import Prelude
+
 import Test.Unit (test, runTest)
 import Test.Unit.Assert as Assert
 
@@ -48,7 +50,33 @@ main = runTest do
 Run tests using [`pulp test`](https://github.com/bodil/pulp) or just
 by compiling with `--main Test.Main`.
 
-## License
+## QuickCheck
+
+[purescript-quickcheck](https://github.com/purescript/purescript-quickcheck)
+tests can be run using the functions in the `Test.Unit.QuickCheck`
+module. It exports two functions, `quickCheck` and `quickCheck'`,
+which work like their QuickCheck counterparts, except they produce
+`TestUnit` actions so they integrate cleanly with Test-Unit.
+
+```purescript
+module Test.Main where
+
+import Prelude
+
+import Test.Unit (test, runTest)
+import Test.Unit.QuickCheck (quickCheck)
+
+import Test.QuickCheck (Result(), (===))
+
+theCommutativeProperty :: Int -> Int -> Result
+theCommutativeProperty a b = (a + b) === (b + a)
+
+main = runTest do
+  test "the commutative property" do
+    quickCheck theCommutativeProperty
+```
+
+## Licence
 
 Copyright 2014 Bodil Stokke
 
