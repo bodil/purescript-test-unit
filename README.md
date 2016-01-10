@@ -2,6 +2,8 @@
 
 An asynchronous unit test runner for PureScript.
 
+* [API docs on Pursuit](http://pursuit.purescript.org/packages/purescript-test-unit/)
+
 ## Usage
 
 Test-Unit tests are simply
@@ -63,42 +65,3 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this program. If not, see
 <http://www.gnu.org/licenses/>.
-
-## Module Test.Unit
-
-### Types
-
-    type Assertion e = TestUnit e
-
-    type Test e = TestUnit e
-
-    type TestResult = Either String Unit
-
-    type TestUnit e = ErrorT String (ContT Unit (Eff e)) Unit
-
-
-### Values
-
-    assert :: forall e. String -> Boolean -> Assertion e
-
-    assertC :: forall e. String -> ContT Unit (Eff e) Boolean -> Assertion e
-
-    assertFalse :: forall e. String -> Boolean -> Assertion e
-
-    assertFn :: forall e. String -> ((Boolean -> Eff e Unit) -> Eff e Unit) -> Assertion e
-
-    failure :: String -> TestResult
-
-    pickFirst :: forall e. TestUnit (ref :: Ref | e) -> TestUnit (ref :: Ref | e) -> TestUnit (ref :: Ref | e)
-
-    runTest :: forall e. Test (testOutput :: TestOutput | e) -> Eff (testOutput :: TestOutput | e) Unit
-
-    success :: TestResult
-
-    test :: forall e. String -> Assertion (testOutput :: TestOutput | e) -> Test (testOutput :: TestOutput | e)
-
-    testC :: forall e. ContT Unit (Eff e) TestResult -> Assertion e
-
-    testFn :: forall e. ((TestResult -> Eff e Unit) -> Eff e Unit) -> Assertion e
-
-    timeout :: forall e. Number -> TestUnit (ref :: Ref, timer :: Timer.Timer | e) -> TestUnit (ref :: Ref, timer :: Timer.Timer | e)
