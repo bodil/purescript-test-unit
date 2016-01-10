@@ -1,19 +1,25 @@
 module Test.Main where
 
 import Prelude
-import Control.Monad.Cont.Trans
-import Test.Unit
 
-main = do
-  runTest do
-    test "basic asserts" do
-      assert "wasn't true" true
-      assertFalse "wasn't false" false
-    test "async asserts" do
-      testC $ ContT \done -> done success
-      testFn \done -> done success
-      assertC "ContT didn't yield true" $ ContT \done -> done true
-      assertFn "callback didn't receive true" \done -> done true
-    test "timeout" do
-      timeout 1000 $ assertC "yielded false" $ ContT (\done -> done true)
-      assert "not true" true
+import Control.Monad.Aff (makeAff)
+import Control.Monad.Aff.AVar (AVAR())
+import Control.Monad.Eff (Eff())
+
+import Test.Unit (TestUnit(), TIMER(), test, runTest, timeout)
+import Test.Unit.Assert as Assert
+import Test.Unit.Console (TESTOUTPUT())
+
+unresolved :: forall e. TestUnit e
+unresolved = makeAff \_ _ -> pure unit
+
+main :: forall e. Eff (timer :: TIMER, avar :: AVAR, testOutput :: TESTOUTPUT | e) Unit
+main = runTest do
+  test "basic asserts" do
+    Assert.assert "wasn't true" true
+    Assert.assertFalse "wasn't false" false
+  test "timeout" do
+    Assert.expectFailure "didn't time out" $ timeout 100 unresolved
+  test "equal" do
+    Assert.equal "omg" "omg"
+    Assert.expectFailure "should be unequal" $ Assert.equal "omg" "wat"

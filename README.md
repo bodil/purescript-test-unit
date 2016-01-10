@@ -4,20 +4,43 @@ An asynchronous unit test runner for PureScript.
 
 ## Usage
 
+Test-Unit tests are simply
+[Aff](https://github.com/slamdata/purescript-aff) actions, which can
+either succeed (test passed) or fail (test did not pass). The type for
+these tests is `TestUnit e`, which is just an alias for `Aff (... | e)
+Unit`.
+
+The `Test.Unit.Assert` module contains a number of functions for
+making common assertions. The most straightforward is `assert`, which
+takes a failure message and a boolean, and if the boolean is true, it
+produces a `TestUnit` which immediately succeeds. If the boolean is
+false, you get a `TestUnit` which fails with the provided error
+message.
+
+Because tests are really just `Aff`s, you can perform any `Aff` inside
+a do block, allowing you to easily test asynchronous code.
+
 ```purescript
 module Test.Main where
 
-import Test.Unit
+import Test.Unit (test, runTest)
+import Test.Unit.Assert as Assert
+
+import Node.FS.Aff as FS
 
 main = runTest do
   test "arithmetic" do
-    assert "two plus two isn't four" $ (2 + 2) == 4
-    assertFalse "two plus two is five" $ (2 + 2) == 5
-  test "async asserts" do
-    -- run an assert function with a done callback
-    assertFn "done callback got a falseness!" \done -> done true
-    -- do it again but fail it if it hasn't completed within 100ms
-    timeout 100 $ assertFn "yielded false" \done -> done true
+    Assert.assert "two plus two isn't four" $ (2 + 2) == 4
+    Assert.assertFalse "two plus two is five" $ (2 + 2) == 5
+    Assert.equal (2 + 2) 4
+    Assert.expectFailure "2 + 2 shouldn't be 5" $ Assert.equal (2 + 2) 5
+  test "with async IO" do
+    fileContents <- FS.readFile "file.txt"
+    Assert.equal fileContents "hello here are your file contents"
+  test "async operation with a timeout" do
+    timeout 100 $ do
+      file2Contents <- FS.readFile "file2.txt"
+      Assert.equal file2Contents "can we read a file in 100ms?"
 ```
 
 Run tests using [`pulp test`](https://github.com/bodil/pulp) or just
