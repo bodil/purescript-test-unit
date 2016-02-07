@@ -3,6 +3,7 @@ module Test.Unit.Assert
   , assertFalse
   , expectFailure
   , equal
+  , equal'
   ) where
 
 import Prelude
