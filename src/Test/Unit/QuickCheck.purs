@@ -5,22 +5,20 @@ module Test.Unit.QuickCheck
 
 import Prelude
 
-import Control.Monad.Aff (makeAff, liftEff')
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Random (RANDOM())
 import Data.Foldable (foldl)
 import Data.List (List(..))
 import Data.Maybe (Maybe(..))
-import Test.QuickCheck (Testable, Result(..))
-import Test.QuickCheck as QC
-import Test.QuickCheck.LCG as LCG
+import Test.QuickCheck (class Testable, Result(..), quickCheckPure)
+import Test.QuickCheck.LCG (randomSeed)
 
 import Test.Unit (TestUnit(), success, failure)
 
 quickCheck' :: forall e prop. (Testable prop) => Int -> prop -> TestUnit (random :: RANDOM | e)
 quickCheck' tries prop = do
-  seed <- liftEff $ LCG.randomSeed
-  let results = QC.quickCheckPure seed tries prop
+  seed <- liftEff $ randomSeed
+  let results = quickCheckPure seed tries prop
       wins = foldl wins' 0 results
       wins' acc Success = acc + 1
       wins' acc _ = acc
