@@ -20,7 +20,7 @@ import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Exception (error, message)
 import Data.Either (Either(..), either)
 
-import Test.Unit.Console
+import Test.Unit.Console (TESTOUTPUT, hasStderr, consoleError, consoleLog, printLabel, print, savePos, printFail, eraseLine, restorePos, printPass)
 
 foreign import data TIMER :: !
 
@@ -55,25 +55,24 @@ timeout :: forall e. Int -> TestUnit e -> TestUnit e
 timeout time t = runPar $ Par t `pickFirst` Par (makeTimeout time)
 
 runWithStderr :: forall e. String -> TestUnit e -> TestUnit e
-runWithStderr l t = do
+runWithStderr label t = do
   liftEff $ do
     savePos
     print "\x2192 Running: "
-    printLabel l
+    printLabel label
+    restorePos
   attempt t >>= handler
   where handler (Right _) = liftEff $ do
-          restorePos
           eraseLine
           printPass "\x2713 Passed: "
-          printLabel l
+          printLabel label
           print "\n"
         handler (Left err) = do
           let reason = message err
           liftEff $ do
-            restorePos
             eraseLine
             printFail "\x2620 Failed: "
-            printLabel l
+            printLabel label
             print " because "
             printFail reason
             print "\n"

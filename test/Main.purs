@@ -32,3 +32,6 @@ main = runTest do
     Assert.expectFailure "should be unequal" $ Assert.equal "omg" "wat"
   test "quickcheck" do
     quickCheck theCommutativeProperty
+  test "nested tests" do
+    test "inner nested test" do
+      Assert.equal "lol" "lol"
