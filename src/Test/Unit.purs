@@ -11,16 +11,14 @@ module Test.Unit
   ) where
 
 import Prelude
-
-import Control.Monad.Aff (Aff(), runAff, attempt, forkAff, makeAff, cancelWith)
+import Control.Monad.Aff (Aff, runAff, attempt, forkAff, makeAff, cancelWith)
+import Control.Monad.Aff.AVar (AVAR, killVar, makeVar, putVar, takeVar)
 import Control.Monad.Aff.Par (Par(..), runPar)
-import Control.Monad.Aff.AVar (AVAR(), killVar, makeVar, putVar, takeVar)
-import Control.Monad.Eff (Eff())
+import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Exception (error, message)
 import Data.Either (Either(..), either)
-
-import Test.Unit.Console (TESTOUTPUT, hasStderr, consoleError, consoleLog, printLabel, print, savePos, printFail, eraseLine, restorePos, printPass)
+import Test.Unit.Console (hasColours, TESTOUTPUT, hasStderr, consoleError, consoleLog, printLabel, print, savePos, printFail, eraseLine, restorePos, printPass)
 
 foreign import data TIMER :: !
 
@@ -90,7 +88,7 @@ runWithConsole l t =
 -- | Make a named test.
 test :: forall e. String -> Assertion e -> Test e
 test l t =
-  if hasStderr then runWithStderr l t else runWithConsole l t
+  if hasStderr && hasColours then runWithStderr l t else runWithConsole l t
 
 foreign import exit :: forall e. Int -> Eff (testOutput :: TESTOUTPUT | e) Unit
 

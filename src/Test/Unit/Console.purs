@@ -7,6 +7,8 @@ foreign import data TESTOUTPUT :: !
 
 foreign import hasStderr :: Boolean
 
+foreign import hasColours :: Boolean
+
 foreign import consoleLog :: forall e. String -> Eff (testOutput :: TESTOUTPUT | e) Unit
 
 foreign import consoleError :: forall e. String -> Eff (testOutput :: TESTOUTPUT | e) Unit
