@@ -9,15 +9,13 @@ An asynchronous unit test runner for PureScript.
 Test-Unit tests are simply
 [Aff](https://github.com/slamdata/purescript-aff) actions, which can
 either succeed (test passed) or fail (test did not pass). The type for
-these tests is `TestUnit e`, which is just an alias for `Aff (... | e)
-Unit`.
+these tests is `Test e`, which is just an alias for `Aff e Unit`.
 
 The `Test.Unit.Assert` module contains a number of functions for
 making common assertions. The most straightforward is `assert`, which
 takes a failure message and a boolean, and if the boolean is true, it
-produces a `TestUnit` which immediately succeeds. If the boolean is
-false, you get a `TestUnit` which fails with the provided error
-message.
+produces a `Test` which immediately succeeds. If the boolean is false,
+you get a `Test` which fails with the provided error message.
 
 Because tests are really just `Aff`s, you can perform any `Aff` inside
 a do block, allowing you to easily test asynchronous code.
@@ -34,18 +32,20 @@ import Test.Unit.Assert as Assert
 import Node.FS.Aff as FS
 
 main = runTest do
-  test "arithmetic" do
-    Assert.assert "2 + 2 should be 4" $ (2 + 2) == 4
-    Assert.assertFalse "2 + 2 shouldn't be 5" $ (2 + 2) == 5
-    Assert.equal (2 + 2) 4
-    Assert.expectFailure "2 + 2 shouldn't be 5" $ Assert.equal (2 + 2) 5
-  test "with async IO" do
-    fileContents <- FS.readFile "file.txt"
-    Assert.equal fileContents "hello here are your file contents"
-  test "async operation with a timeout" do
-    timeout 100 $ do
-      file2Contents <- FS.readFile "file2.txt"
-      Assert.equal file2Contents "can we read a file in 100ms?"
+  suite "sync code" do
+    test "arithmetic" do
+      Assert.assert "2 + 2 should be 4" $ (2 + 2) == 4
+      Assert.assertFalse "2 + 2 shouldn't be 5" $ (2 + 2) == 5
+      Assert.equal (2 + 2) 4
+      Assert.expectFailure "2 + 2 shouldn't be 5" $ Assert.equal (2 + 2) 5
+  suite "async code" do
+    test "with async IO" do
+      fileContents <- FS.readFile "file.txt"
+      Assert.equal fileContents "hello here are your file contents"
+    test "async operation with a timeout" do
+      timeout 100 $ do
+        file2Contents <- FS.readFile "file2.txt"
+        Assert.equal file2Contents "can we read a file in 100ms?"
 ```
 
 Run tests using [`pulp test`](https://github.com/bodil/pulp) or just
@@ -57,7 +57,7 @@ by compiling with `--main Test.Main`.
 tests can be run using the functions in the `Test.Unit.QuickCheck`
 module. It exports two functions, `quickCheck` and `quickCheck'`,
 which work like their QuickCheck counterparts, except they produce
-`TestUnit` actions so they integrate cleanly with Test-Unit.
+`Test` actions so they integrate cleanly with Test-Unit.
 
 ```purescript
 module Test.Main where
