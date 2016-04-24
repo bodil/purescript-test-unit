@@ -1,26 +1,25 @@
 module Test.Main where
 
 import Prelude
-
-import Control.Monad.Aff (makeAff)
-import Control.Monad.Aff.AVar (AVAR())
-import Control.Monad.Eff (Eff())
-import Control.Monad.Eff.Console (CONSOLE())
-import Control.Monad.Eff.Random (RANDOM())
-import Test.QuickCheck (Result(), (===))
-
-import Test.Unit (TestUnit(), TIMER(), test, runTest, timeout)
 import Test.Unit.Assert as Assert
-import Test.Unit.Console (TESTOUTPUT())
+import Control.Monad.Aff (makeAff)
+import Control.Monad.Aff.AVar (AVAR)
+import Control.Monad.Eff (Eff)
+import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Random (RANDOM)
+import Test.QuickCheck (Result, (===))
+import Test.Unit (suite, Test, TIMER, test, timeout)
+import Test.Unit.Console (TESTOUTPUT)
+import Test.Unit.Main (runTest)
 import Test.Unit.QuickCheck (quickCheck)
 
-unresolved :: forall e. TestUnit e
+unresolved :: forall e. Test e
 unresolved = makeAff \_ _ -> pure unit
 
 theCommutativeProperty :: Int -> Int -> Result
 theCommutativeProperty a b = (a + b) === (b + a)
 
-main :: forall e. Eff (timer :: TIMER, avar :: AVAR, testOutput :: TESTOUTPUT, console :: CONSOLE, random :: RANDOM | e) Unit
+main :: forall e. Eff (timer :: TIMER, avar :: AVAR, console :: CONSOLE, random :: RANDOM, testOutput :: TESTOUTPUT | e) Unit
 main = runTest do
   test "basic asserts" do
     Assert.assert "wasn't true" true
@@ -32,6 +31,6 @@ main = runTest do
     Assert.expectFailure "should be unequal" $ Assert.equal "omg" "wat"
   test "quickcheck" do
     quickCheck theCommutativeProperty
-  test "nested tests" do
-    test "inner nested test" do
+  suite "a test suite" do
+    test "a test in a test suite" do
       Assert.equal "lol" "lol"

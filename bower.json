@@ -20,6 +20,9 @@
     "purescript-either": "~0.2.3",
     "purescript-prelude": "~0.1.5",
     "purescript-eff": "~0.1.2",
-    "purescript-quickcheck": "~0.12.2"
+    "purescript-quickcheck": "~0.12.2",
+    "purescript-free": "^0.9.1",
+    "purescript-sequences": "^0.6.0",
+    "purescript-strings": "^0.7.1"
   }
 }

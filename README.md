@@ -27,7 +27,8 @@ module Test.Main where
 
 import Prelude
 
-import Test.Unit (test, runTest)
+import Test.Unit (test)
+import Test.Unit.Main (runTest)
 import Test.Unit.Assert as Assert
 
 import Node.FS.Aff as FS
@@ -63,7 +64,8 @@ module Test.Main where
 
 import Prelude
 
-import Test.Unit (test, runTest)
+import Test.Unit (test)
+import Test.Unit.Main (runTest)
 import Test.Unit.QuickCheck (quickCheck)
 
 import Test.QuickCheck (Result(), (===))
@@ -75,6 +77,33 @@ main = runTest do
   test "the commutative property" do
     quickCheck theCommutativeProperty
 ```
+
+## Output Formats
+
+The `Test.Unit.Main.runTest` function will default to simple output of
+test results using `console.log` (the
+`Test.Unit.Output.Simple.runTest` test runner). If you're running on
+an ANSI colour capable terminal, it will use the
+`Test.Unit.Output.Fancy.runTest` test runner, which gets a little more
+colourful.
+
+Additionally, if `Test.Unit.Main.runTest` notices the word `tap` or
+`--tap` on its command line, it will pick the
+`Test.Unit.Output.TAP.runTest` test runner, which outputs test results
+using the [TAP](https://testanything.org/) format. A number of TAP
+consumers are
+[available on NPM](https://www.npmjs.com/package/tape#pretty-reporters)
+to transform the test output. For instance, you could install the
+[tap-spec](https://github.com/scottcorgan/tap-spec) and run your tests
+like this: `pulp test tap | tap-spec`.
+
+You can also specify your own test runner using the
+`Test.Unit.Main.runTestWith` function, which takes a test runner as
+its first argument. So, if you want to force the TAP test runner,
+instead of `main = runTest do ...` you could use `main = runTestWith
+Test.Unit.Output.TAP.runTest do ...`. You could also supply your own
+custom test runner - study one of the existing test runners to learn
+how.
 
 ## Licence
 

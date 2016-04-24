@@ -12,10 +12,9 @@ import Data.List (List(..))
 import Data.Maybe (Maybe(..))
 import Test.QuickCheck (class Testable, Result(..), quickCheckPure)
 import Test.QuickCheck.LCG (randomSeed)
+import Test.Unit (Test, success, failure)
 
-import Test.Unit (TestUnit(), success, failure)
-
-quickCheck' :: forall e prop. (Testable prop) => Int -> prop -> TestUnit (random :: RANDOM | e)
+quickCheck' :: forall e prop. (Testable prop) => Int -> prop -> Test (random :: RANDOM | e)
 quickCheck' tries prop = do
   seed <- liftEff $ randomSeed
   let results = quickCheckPure seed tries prop
@@ -29,5 +28,5 @@ quickCheck' tries prop = do
     Nothing -> success
     Just msg -> failure $ show (tries - wins) ++ "/" ++ show tries ++ " tests failed: " ++ msg
 
-quickCheck :: forall e prop. (Testable prop) => prop -> TestUnit (random :: RANDOM | e)
+quickCheck :: forall e prop. (Testable prop) => prop -> Test (random :: RANDOM | e)
 quickCheck = quickCheck' 100
