@@ -25,11 +25,12 @@ module Test.Main where
 
 import Prelude
 
-import Test.Unit (suite,test)
+import Test.Unit (suite, test, timeout)
 import Test.Unit.Main (runTest)
 import Test.Unit.Assert as Assert
 
 import Node.FS.Aff as FS
+import Node.Encoding (Encoding(..))
 
 main = runTest do
   suite "sync code" do
@@ -40,11 +41,11 @@ main = runTest do
       Assert.expectFailure "2 + 2 shouldn't be 5" $ Assert.equal (2 + 2) 5
   suite "async code" do
     test "with async IO" do
-      fileContents <- FS.readFile "file.txt"
+      fileContents <- FS.readTextFile UTF8 "file.txt"
       Assert.equal fileContents "hello here are your file contents"
     test "async operation with a timeout" do
       timeout 100 $ do
-        file2Contents <- FS.readFile "file2.txt"
+        file2Contents <- FS.readTextFile UTF8 "file2.txt"
         Assert.equal file2Contents "can we read a file in 100ms?"
 ```
 
