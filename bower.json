@@ -16,13 +16,13 @@
     "output"
   ],
   "dependencies": {
-    "purescript-aff": "~0.16.1",
-    "purescript-either": "~0.2.3",
-    "purescript-prelude": "~0.1.5",
-    "purescript-eff": "~0.1.2",
-    "purescript-quickcheck": "~0.12.2",
-    "purescript-free": "^0.9.1",
+    "purescript-aff": "^1.0.0",
+    "purescript-either": "^1.0.0",
+    "purescript-prelude": "^1.0.0",
+    "purescript-eff": "^1.0.0",
+    "purescript-quickcheck": "^1.0.0",
+    "purescript-free": "^1.0.0",
     "purescript-sequences": "^0.6.0",
-    "purescript-strings": "^0.7.1"
+    "purescript-strings": "^1.0.0"
   }
 }
