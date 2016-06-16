@@ -11,7 +11,7 @@ import Data.Either (Either(Left, Right))
 import Data.Foldable (traverse_)
 import Data.Maybe (Maybe(Just, Nothing))
 import Data.Monoid (mempty)
-import Data.Sequence (uncons, length)
+import Data.List (uncons, length)
 import Data.Tuple (Tuple(Tuple))
 import Test.Unit (collectErrors, TestF(..), TestSuite, Group(..))
 import Test.Unit.Console (printFail, savePos, restorePos, eraseLine, printPass, printLabel, print, TESTOUTPUT)
@@ -32,7 +32,7 @@ printLive t = runSuite 0 t
         printLabel label
         print "\n"
       runSuite (level + 1) content
-      return rest
+      pure rest
     runSuiteItem level t'@(TestUnit label t rest) = do
       liftEff do
         print $ indent level
@@ -54,19 +54,19 @@ printLive t = runSuite 0 t
           print " because "
           printFail $ message err
           print "\n"
-      return rest
+      pure rest
 
 printErrors :: forall e. TestSuite (testOutput :: TESTOUTPUT | e) -> Aff (testOutput :: TESTOUTPUT | e) Unit
 printErrors suite = do
   errors <- collectErrors suite
   liftEff do
     case length errors of
-      0 -> return unit
+      0 -> pure unit
       1 -> do
         printFail "\n1 test failed:\n\n"
         list errors
       i -> do
-        printFail $ "\n" ++ show i ++ " tests failed:\n\n"
+        printFail $ "\n" <> show i <> " tests failed:\n\n"
         list errors
   where list = traverse_ printItem
         printItem (Tuple path err) = do
@@ -75,9 +75,9 @@ printErrors suite = do
           print "\n"
         printHeader level path = case uncons path of
           Nothing -> print $ indent level
-          Just (Tuple car cdr) -> do
-            print $ indent level ++ "In \"" ++ car ++ "\":\n"
-            printHeader (level + 1) cdr
+          Just {head, tail} -> do
+            print $ indent level <> "In \"" <> head <> "\":\n"
+            printHeader (level + 1) tail
         printError err = do
           printFail $ message err
           print "\n"
