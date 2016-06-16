@@ -12,7 +12,7 @@ import Data.Either (Either(Left, Right))
 import Data.Foldable (traverse_)
 import Data.Maybe (Maybe(Just, Nothing))
 import Data.Monoid (mempty)
-import Data.Sequence (uncons, length)
+import Data.List (uncons, length)
 import Data.Tuple (Tuple(Tuple))
 import Test.Unit (collectErrors, TestF(..), TestSuite, Group(..))
 
@@ -28,17 +28,17 @@ printLive t = runSuite 0 t
 
     runSuiteItem :: forall e1. Int -> TestF (console :: CONSOLE | e1) (TestSuite (console :: CONSOLE | e1)) -> Aff (console :: CONSOLE | e1) (TestSuite (console :: CONSOLE | e1))
     runSuiteItem level (TestGroup (Group label content) rest) = do
-      log $ indent level ++ "- Suite: " ++ label
+      log $ indent level <> "- Suite: " <> label
       runSuite (level + 1) content
-      return rest
+      pure rest
     runSuiteItem level t'@(TestUnit label t rest) = do
       result <- attempt t
       case result of
-        (Right _) -> log $ indent level ++ "\x2713 Passed: " ++ label
+        (Right _) -> log $ indent level <> "\x2713 Passed: " <> label
         (Left err) ->
-          log $ indent level ++ "\x2620 Failed: " ++ label
-                             ++ " because " ++ message err
-      return rest
+          log $ indent level <> "\x2620 Failed: " <> label
+                             <> " because " <> message err
+      pure rest
 
 printErrors :: forall e. TestSuite (console :: CONSOLE | e) -> Aff (console :: CONSOLE | e) Unit
 printErrors suite = do
@@ -50,7 +50,7 @@ printErrors suite = do
       log "1 test failed:\n"
       list errors
     i -> do
-      log $ show i ++ " tests failed:\n"
+      log $ show i <> " tests failed:\n"
       list errors
   where list = traverse_ print
         print (Tuple path err) = do
@@ -58,11 +58,11 @@ printErrors suite = do
           printError err
           log ""
         printHeader level path = case uncons path of
-          Nothing -> return unit
-          Just (Tuple car cdr) -> do
-            log $ indent level ++ "In \"" ++ car ++ "\":"
-            printHeader (level + 1) cdr
-        printError err = log $ "Error: " ++ message err
+          Nothing -> pure unit
+          Just {head, tail} -> do
+            log $ indent level <> "In \"" <> head <> "\":"
+            printHeader (level + 1) tail
+        printError err = log $ "Error: " <> message err
 
 runTest :: forall e. TestSuite (console :: CONSOLE | e) -> Aff (console :: CONSOLE | e) Unit
 runTest suite = do

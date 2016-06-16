@@ -26,7 +26,7 @@ quickCheck' tries prop = do
       findErr (Cons _ xs) = findErr xs
   case findErr results of
     Nothing -> success
-    Just msg -> failure $ show (tries - wins) ++ "/" ++ show tries ++ " tests failed: " ++ msg
+    Just msg -> failure $ show (tries - wins) <> "/" <> show tries <> " tests failed: " <> msg
 
 quickCheck :: forall e prop. (Testable prop) => prop -> Test (random :: RANDOM | e)
 quickCheck = quickCheck' 100

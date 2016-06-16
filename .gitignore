@@ -2,3 +2,4 @@
 /bower_components/
 /output/
 /.pulp-cache
+*.tix

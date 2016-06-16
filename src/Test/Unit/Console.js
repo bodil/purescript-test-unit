@@ -3,14 +3,6 @@
 
 // module Test.Unit.Console
 
-exports.exit = function exit(rv) {
-  return function() {
-    try { process.exit(rv); } catch (e) {
-      try { phantom.exit(rv); } catch (e) {}
-    };
-  };
-};
-
 var hasStderr;
 try { hasStderr = !!process.stderr; } catch (e) { hasStderr = false; }
 exports.hasStderr = hasStderr;
