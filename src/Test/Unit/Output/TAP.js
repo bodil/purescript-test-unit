@@ -2,12 +2,11 @@
 
 exports.requested = (function() {
   try {
-    if (process.argv.indexOf("--tap") >= 0 ||
-        process.argv.indexOf("tap") >= 0) {
+    if (process.argv.indexOf("--tap") >= 0
+        || process.argv.indexOf("tap") >= 0) {
       return true;
-    } else {
-      return false;
     }
+    return false;
   } catch (e) {
     return false;
   }

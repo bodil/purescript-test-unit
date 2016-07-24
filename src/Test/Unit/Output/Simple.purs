@@ -6,11 +6,11 @@ import Prelude
 import Control.Monad.Aff (attempt, Aff)
 import Control.Monad.Aff.Console (log)
 import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Exception (message)
+import Control.Monad.Eff.Exception (message, stack)
 import Control.Monad.Free (runFreeM)
 import Data.Either (Either(Left, Right))
 import Data.Foldable (traverse_)
-import Data.Maybe (Maybe(Just, Nothing))
+import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
 import Data.Monoid (mempty)
 import Data.List (uncons, length)
 import Data.Tuple (Tuple(Tuple))
@@ -62,7 +62,7 @@ printErrors suite = do
           Just {head, tail} -> do
             log $ indent level <> "In \"" <> head <> "\":"
             printHeader (level + 1) tail
-        printError err = log $ "Error: " <> message err
+        printError err = log $ "Error: " <> fromMaybe (message err) (stack err)
 
 runTest :: forall e. TestSuite (console :: CONSOLE | e) -> Aff (console :: CONSOLE | e) Unit
 runTest suite = do

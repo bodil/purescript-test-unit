@@ -5,11 +5,11 @@ module Test.Unit.Output.Fancy
 import Prelude
 import Control.Monad.Aff (attempt, Aff)
 import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Exception (message)
+import Control.Monad.Eff.Exception (message, stack)
 import Control.Monad.Free (runFreeM)
 import Data.Either (Either(Left, Right))
 import Data.Foldable (traverse_)
-import Data.Maybe (Maybe(Just, Nothing))
+import Data.Maybe (Maybe(Just, Nothing), maybe)
 import Data.Monoid (mempty)
 import Data.List (uncons, length)
 import Data.Tuple (Tuple(Tuple))
@@ -79,7 +79,7 @@ printErrors suite = do
             print $ indent level <> "In \"" <> head <> "\":\n"
             printHeader (level + 1) tail
         printError err = do
-          printFail $ message err
+          maybe (printFail $ message err) printFail (stack err)
           print "\n"
 
 runTest :: forall e. TestSuite (testOutput :: TESTOUTPUT | e) -> Aff (testOutput :: TESTOUTPUT | e) Unit
