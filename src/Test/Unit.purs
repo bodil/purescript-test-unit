@@ -2,7 +2,6 @@ module Test.Unit
   ( Test(..)
   , TestF(..)
   , Group(..)
-  , TestGroup
   , TestSuite
   , TIMER
   , success
@@ -17,7 +16,6 @@ module Test.Unit
   ) where
 
 import Prelude
-
 import Control.Alt ((<|>))
 import Control.Monad.Aff (Aff, attempt, makeAff, forkAff, cancelWith)
 import Control.Monad.Aff.AVar (makeVar, killVar, putVar, takeVar, AVAR)
@@ -64,11 +62,9 @@ timeout time t = t `pickFirst` (makeTimeout time)
 data Group e = Group String (TestSuite e)
 
 data TestF e a = TestGroup (Group e) a
-             | TestUnit String (Test e) a
+               | TestUnit String (Test e) a
 
-type TestGroup e = Free (TestF e)
-type TestSuite e = TestGroup e Unit
-type TestUnit e = TestF e Unit
+type TestSuite e = Free (TestF e) Unit
 
 instance functorTestF :: Functor (TestF e) where
   map f (TestGroup g a) = TestGroup g (f a)
