@@ -4,48 +4,46 @@ module Test.Unit.Output.Simple
 
 import Prelude
 import Control.Monad.Aff (attempt, Aff)
+import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Aff.Console (log)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Exception (message, stack)
-import Control.Monad.Free (runFreeM)
 import Data.Either (Either(Left, Right))
 import Data.Foldable (traverse_)
+import Data.List (length, List, uncons)
 import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
 import Data.Monoid (mempty)
-import Data.List (uncons, length)
 import Data.Tuple (Tuple(Tuple))
-import Test.Unit (collectErrors, TestF(..), TestSuite, Group(..))
+import Test.Unit (keepErrors, collectResults, walkSuite, TestList, TestF(..), TestSuite, Group(..))
 
-indent :: Int -> String
 indent 0 = mempty
 indent n = "  " <> indent (n - 1)
 
-printLive :: forall e. TestSuite (console :: CONSOLE | e) -> Aff (console :: CONSOLE | e) Unit
-printLive t = runSuite 0 t
-  where
-    runSuite :: forall e1. Int -> TestSuite (console :: CONSOLE | e1) -> Aff (console :: CONSOLE | e1) Unit
-    runSuite level suite = runFreeM (runSuiteItem level) suite
+indent' :: forall a. List a -> String
+indent' = length >>> indent
 
-    runSuiteItem :: forall e1. Int -> TestF (console :: CONSOLE | e1) (TestSuite (console :: CONSOLE | e1)) -> Aff (console :: CONSOLE | e1) (TestSuite (console :: CONSOLE | e1))
-    runSuiteItem level (TestGroup (Group label content) rest) = do
-      log $ indent level <> "- Suite: " <> label
-      runSuite (level + 1) content
-      pure rest
-    runSuiteItem level t'@(TestUnit label t rest) = do
+printLive :: forall e. TestSuite (console :: CONSOLE, avar :: AVAR | e) -> Aff (console :: CONSOLE, avar :: AVAR | e) (TestList (console :: CONSOLE, avar :: AVAR | e))
+printLive t = walkSuite runSuiteItem t
+  where
+    runSuiteItem path (TestGroup (Group label content) _) = do
+      log $ indent' path <> "- Suite: " <> label
+      pure unit
+    runSuiteItem path t'@(TestUnit label t rest) = do
       result <- attempt t
       case result of
-        (Right _) -> log $ indent level <> "\x2713 Passed: " <> label
+        (Right _) -> log $ indent' path <> "\x2713 Passed: " <> label
         (Left err) ->
-          log $ indent level <> "\x2620 Failed: " <> label
+          log $ indent' path <> "\x2620 Failed: " <> label
                              <> " because " <> message err
-      pure rest
+      pure unit
 
-printErrors :: forall e. TestSuite (console :: CONSOLE | e) -> Aff (console :: CONSOLE | e) Unit
-printErrors suite = do
-  errors <- collectErrors suite
+printErrors :: forall e. TestList (console :: CONSOLE | e) -> Aff (console :: CONSOLE | e) Unit
+printErrors tests = do
+  results <- collectResults tests
+  let errors = keepErrors results
   log ""
   case length errors of
-    0 -> log "🎉 All tests passed! 🎉\n"
+    0 -> log $ "All " <> show (length results) <> " tests passed!\n"
     1 -> do
       log "1 test failed:\n"
       list errors
@@ -64,7 +62,8 @@ printErrors suite = do
             printHeader (level + 1) tail
         printError err = log $ "Error: " <> fromMaybe (message err) (stack err)
 
-runTest :: forall e. TestSuite (console :: CONSOLE | e) -> Aff (console :: CONSOLE | e) Unit
+runTest :: forall e. TestSuite (console :: CONSOLE, avar :: AVAR | e) -> Aff (console :: CONSOLE, avar :: AVAR | e) (TestList (console :: CONSOLE, avar :: AVAR | e))
 runTest suite = do
-  printLive suite
-  printErrors suite
+  tests <- printLive suite
+  printErrors tests
+  pure tests

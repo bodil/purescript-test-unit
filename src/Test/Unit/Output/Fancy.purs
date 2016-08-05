@@ -4,44 +4,42 @@ module Test.Unit.Output.Fancy
 
 import Prelude
 import Control.Monad.Aff (attempt, Aff)
+import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Exception (message, stack)
-import Control.Monad.Free (runFreeM)
 import Data.Either (Either(Left, Right))
 import Data.Foldable (traverse_)
+import Data.List (List, uncons, length)
 import Data.Maybe (Maybe(Just, Nothing), maybe)
 import Data.Monoid (mempty)
-import Data.List (uncons, length)
 import Data.Tuple (Tuple(Tuple))
-import Test.Unit (collectErrors, TestF(..), TestSuite, Group(..))
+import Test.Unit (collectResults, TestList, keepErrors, walkSuite, TestF(..), TestSuite, Group(..))
 import Test.Unit.Console (printFail, savePos, restorePos, eraseLine, printPass, printLabel, print, TESTOUTPUT)
 
-indent :: Int -> String
 indent 0 = mempty
 indent n = "  " <> indent (n - 1)
 
-printLive :: forall e. TestSuite (testOutput :: TESTOUTPUT | e) -> Aff (testOutput :: TESTOUTPUT | e) Unit
-printLive t = runSuite 0 t
-  where
-    runSuite level suite = runFreeM (runSuiteItem level) suite
+indent' :: forall a. List a -> String
+indent' = length >>> indent
 
-    runSuiteItem level (TestGroup (Group label content) rest) = do
+printLive :: forall e. TestSuite (testOutput :: TESTOUTPUT, avar :: AVAR | e) -> Aff (testOutput :: TESTOUTPUT, avar :: AVAR | e) (TestList (testOutput :: TESTOUTPUT, avar :: AVAR | e))
+printLive t = walkSuite runSuiteItem t
+  where
+    runSuiteItem path (TestGroup (Group label content) rest) = do
       liftEff do
-        print $ indent level
+        print $ indent' path
         print "\x2192 Suite: "
         printLabel label
-        print "\n"
-      runSuite (level + 1) content
-      pure rest
-    runSuiteItem level t'@(TestUnit label t rest) = do
+        void $ print "\n"
+    runSuiteItem path (TestUnit label t rest) = do
       liftEff do
-        print $ indent level
+        print $ indent' path
         savePos
         print "\x2192 Running: "
         printLabel label
         restorePos
       result <- attempt t
-      case result of
+      void $ case result of
         (Right _) -> liftEff do
           eraseLine
           printPass "\x2713 Passed: "
@@ -54,14 +52,14 @@ printLive t = runSuite 0 t
           print " because "
           printFail $ message err
           print "\n"
-      pure rest
 
-printErrors :: forall e. TestSuite (testOutput :: TESTOUTPUT | e) -> Aff (testOutput :: TESTOUTPUT | e) Unit
-printErrors suite = do
-  errors <- collectErrors suite
+printErrors :: forall e. TestList (testOutput :: TESTOUTPUT | e) -> Aff (testOutput :: TESTOUTPUT | e) Unit
+printErrors tests = do
+  results <- collectResults tests
+  let errors = keepErrors results
   liftEff do
     case length errors of
-      0 -> pure unit
+      0 -> printPass $ "\nAll " <> show (length results) <> " tests passed! 🎉\n\n"
       1 -> do
         printFail "\n1 test failed:\n\n"
         list errors
@@ -82,7 +80,8 @@ printErrors suite = do
           maybe (printFail $ message err) printFail (stack err)
           print "\n"
 
-runTest :: forall e. TestSuite (testOutput :: TESTOUTPUT | e) -> Aff (testOutput :: TESTOUTPUT | e) Unit
+runTest :: forall e. TestSuite (testOutput :: TESTOUTPUT, avar :: AVAR | e) -> Aff (testOutput :: TESTOUTPUT, avar :: AVAR | e) (TestList (testOutput :: TESTOUTPUT, avar :: AVAR | e))
 runTest suite = do
-  printLive suite
-  printErrors suite
+  tests <- printLive suite
+  printErrors tests
+  pure tests

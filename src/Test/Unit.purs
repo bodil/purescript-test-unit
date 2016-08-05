@@ -3,31 +3,32 @@ module Test.Unit
   , TestF(..)
   , Group(..)
   , TestSuite
+  , TestList
   , TIMER
   , success
   , failure
   , timeout
   , test
   , suite
+  , walkSuite
   , collectTests
   , collectResults
-  , collectErrors
   , keepErrors
   ) where
 
 import Prelude
 import Control.Alt ((<|>))
 import Control.Monad.Aff (Aff, attempt, makeAff, forkAff, cancelWith)
-import Control.Monad.Aff.AVar (makeVar, killVar, putVar, takeVar, AVAR)
+import Control.Monad.Aff.AVar (modifyVar, makeVar', makeVar, killVar, putVar, takeVar, AVAR)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (error, Error)
 import Control.Monad.Free (runFreeM, Free, liftF)
-import Control.Monad.Writer (execWriter, tell)
 import Data.Either (Either(Left), either)
 import Data.Foldable (foldl)
-import Data.List (snoc, singleton, List(Nil))
+import Data.List (snoc, List(Cons, Nil))
 import Data.Traversable (for)
 import Data.Tuple (Tuple(Tuple))
+import Test.Unit.MemoAff (memoise)
 
 foreign import data TIMER :: !
 
@@ -77,23 +78,41 @@ suite label tests = liftF $ TestGroup (Group label tests) unit
 
 -- | Define a labelled test.
 test :: forall e. String -> Test e -> TestSuite e
-test l t = liftF $ TestUnit l t unit
+test l t = liftF $ TestUnit l (memoise t) unit
 
 
 
--- | Walk a test suite and collect all the tests inside it as a flat sequence.
-collectTests :: forall e. TestSuite e -> List (Tuple (List String) (Test e))
-collectTests = execWriter <<< runFreeM (runSuiteItem Nil)
-  where runSuiteItem path (TestUnit label t rest) = do
-          tell $ singleton $ Tuple (snoc path label) t
-          pure rest
-        runSuiteItem path (TestGroup (Group label children) rest) = do
-          runFreeM (runSuiteItem (snoc path label)) children
-          pure rest
+-- | A list of collected tests, represented as a tuple of each test's path
+-- | and the `Test` itself. The path, in this case, means the name of the
+-- | test preceded by the name of each parent test suite, in top down order.
+type TestList e = List (Tuple (List String) (Test e))
 
--- | Run a test suite and collect each test result in a flat list.
-collectResults :: forall e. TestSuite e -> Aff e (List (Tuple (List String) (Either Error Unit)))
-collectResults tests = for (collectTests tests) run
+-- | Walk through a test suite, calling the provided function for each item,
+-- | and returning a `TestList` of all tests walked. The tests won't actually
+-- | run unless you run them explicitly from your walker function.
+walkSuite :: forall e. (List String -> TestF (avar :: AVAR | e) (TestSuite (avar :: AVAR | e)) -> Aff (avar :: AVAR | e) Unit) -> TestSuite (avar :: AVAR | e) -> Aff (avar :: AVAR | e) (TestList (avar :: AVAR | e))
+walkSuite runItem tests = do
+  coll <- makeVar' Nil
+  let walkItem path group@(TestGroup (Group label content) rest) = do
+        runItem path group
+        runFreeM (walkItem (snoc path label)) content
+        pure rest
+      walkItem path t@(TestUnit label aff rest) = do
+        modifyVar (Cons (Tuple (snoc path label) aff)) coll
+        runItem path t
+        pure rest
+  runFreeM (walkItem Nil) tests
+  res <- takeVar coll
+  pure res
+
+-- | Walk through a test suite, returning a `TestList` of all tests walked.
+-- | This operation will not actually run the tests.
+collectTests :: forall e. TestSuite (avar :: AVAR | e) -> Aff (avar :: AVAR | e) (TestList (avar :: AVAR | e))
+collectTests = walkSuite (\_ _ -> pure unit)
+
+-- | Run a list of tests and collect each test result.
+collectResults :: forall e. TestList e -> Aff e (List (Tuple (List String) (Either Error Unit)))
+collectResults tests = for tests run
   where run (Tuple label t) = Tuple label <$> attempt t
 
 -- | Filter successes out of a list of test results.
@@ -101,7 +120,3 @@ keepErrors :: List (Tuple (List String) (Either Error Unit)) -> List (Tuple (Lis
 keepErrors = foldl run Nil
   where run s (Tuple label (Left err)) = snoc s $ Tuple label err
         run s _ = s
-
--- | Run a test suite and collect failing tests in a flat list.
-collectErrors :: forall e. TestSuite e -> Aff e (List (Tuple (List String) Error))
-collectErrors = collectResults >>> map keepErrors

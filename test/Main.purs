@@ -2,15 +2,18 @@ module Test.Main where
 
 import Prelude
 import Test.Unit.Assert as Assert
-import Control.Monad.Aff (makeAff)
+import Test.Unit.Output.Fancy as Fancy
+import Test.Unit.Output.Simple as Simple
+import Test.Unit.Output.TAP as TAP
+import Control.Monad.Aff (Aff, makeAff)
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Random (RANDOM)
 import Test.QuickCheck (Result, (===))
-import Test.Unit (suite, Test, TIMER, test, timeout)
+import Test.Unit (TestSuite, suite, Test, TIMER, test, timeout)
 import Test.Unit.Console (TESTOUTPUT)
-import Test.Unit.Main (runTest)
+import Test.Unit.Main (runTestWith, run)
 import Test.Unit.QuickCheck (quickCheck)
 
 unresolved :: forall e. Test e
@@ -19,8 +22,11 @@ unresolved = makeAff \_ _ -> pure unit
 theCommutativeProperty :: Int -> Int -> Result
 theCommutativeProperty a b = (a + b) === (b + a)
 
-main :: forall e. Eff (timer :: TIMER, avar :: AVAR, console :: CONSOLE, random :: RANDOM, testOutput :: TESTOUTPUT | e) Unit
-main = runTest do
+foreign import incRef :: forall e. Aff e Int
+foreign import resetRef :: forall e. Aff e Int
+
+tests :: forall e. TestSuite (timer :: TIMER , avar :: AVAR , random :: RANDOM | e)
+tests = do
   test "basic asserts" do
     Assert.assert "wasn't true" true
     Assert.assertFalse "wasn't false" false
@@ -33,4 +39,16 @@ main = runTest do
     quickCheck theCommutativeProperty
   suite "a test suite" do
     test "a test in a test suite" do
-      Assert.equal "lol" "lol"
+      pure unit
+  test "tests run only once" do
+    ref <- incRef
+    Assert.equal 1 ref
+
+main :: forall e. Eff (timer :: TIMER, avar :: AVAR, console :: CONSOLE, random :: RANDOM, testOutput :: TESTOUTPUT | e) Unit
+main = run do
+  resetRef
+  runTestWith Fancy.runTest tests
+  resetRef
+  runTestWith Simple.runTest tests
+  resetRef
+  runTestWith TAP.runTest tests
