@@ -4,7 +4,6 @@ module Test.Unit
   , Group(..)
   , TestSuite
   , TestList
-  , TIMER
   , success
   , failure
   , timeout
@@ -20,8 +19,8 @@ import Prelude
 import Control.Alt ((<|>))
 import Control.Monad.Aff (Aff, attempt, makeAff, forkAff, cancelWith)
 import Control.Monad.Aff.AVar (modifyVar, makeVar', makeVar, killVar, putVar, takeVar, AVAR)
-import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Exception (error, Error)
+import Control.Monad.Eff.Timer (TIMER, setTimeout)
 import Control.Monad.Free (runFreeM, Free, liftF)
 import Data.Either (Either(Left), either)
 import Data.Foldable (foldl)
@@ -29,8 +28,6 @@ import Data.List (snoc, List(Cons, Nil))
 import Data.Traversable (for)
 import Data.Tuple (Tuple(Tuple))
 import Test.Unit.MemoAff (memoise)
-
-foreign import data TIMER :: !
 
 type Test e = Aff e Unit
 
@@ -42,10 +39,8 @@ success = makeAff \_ succeed -> succeed unit
 failure :: forall e. String -> Test e
 failure reason = makeAff \fail _ -> fail $ error reason
 
-foreign import setTimeout :: forall e a. Int -> Eff (timer :: TIMER | e) a -> Eff (timer :: TIMER | e) Unit
-
 makeTimeout :: forall e. Int -> Aff (timer :: TIMER | e) Unit
-makeTimeout time = makeAff \fail _ -> setTimeout time $ fail $ error $ "test timed out after " <> show time <> "ms"
+makeTimeout time = makeAff \fail _ -> void $ setTimeout time $ fail $ error $ "test timed out after " <> show time <> "ms"
 
 pickFirst :: forall e. Test (avar :: AVAR | e) -> Test (avar :: AVAR | e) -> Test (avar :: AVAR | e)
 pickFirst t1 t2 = do

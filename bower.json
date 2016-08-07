@@ -16,13 +16,14 @@
     "output"
   ],
   "dependencies": {
-    "purescript-aff": "~1.0.0",
+    "purescript-aff": "~1.1.0",
     "purescript-either": "~1.0.0",
     "purescript-prelude": "~1.0.1",
     "purescript-eff": "~1.0.0",
     "purescript-quickcheck": "~1.0.0",
     "purescript-free": "^1.0.0",
     "purescript-strings": "^1.0.0",
-    "purescript-lists": "^1.0.1"
+    "purescript-lists": "^1.0.1",
+    "purescript-js-timers": "^1.0.0"
   }
 }
