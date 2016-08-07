@@ -16,6 +16,7 @@ import Data.Tuple (Tuple(Tuple))
 import Test.Unit (collectResults, TestList, keepErrors, walkSuite, TestF(..), TestSuite, Group(..))
 import Test.Unit.Console (printFail, savePos, restorePos, eraseLine, printPass, printLabel, print, TESTOUTPUT)
 
+indent :: Int -> String
 indent 0 = mempty
 indent n = "  " <> indent (n - 1)
 

@@ -16,6 +16,7 @@ import Data.Monoid (mempty)
 import Data.Tuple (Tuple(Tuple))
 import Test.Unit (keepErrors, collectResults, walkSuite, TestList, TestF(..), TestSuite, Group(..))
 
+indent :: Int -> String
 indent 0 = mempty
 indent n = "  " <> indent (n - 1)
 
