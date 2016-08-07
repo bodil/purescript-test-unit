@@ -27,7 +27,8 @@ import Data.Foldable (foldl)
 import Data.List (snoc, List(Cons, Nil))
 import Data.Traversable (for)
 import Data.Tuple (Tuple(Tuple))
-import Test.Unit.MemoAff (memoise)
+
+foreign import memoise :: forall a e. Aff e a -> Aff e a
 
 type Test e = Aff e Unit
 

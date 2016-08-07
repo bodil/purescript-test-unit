@@ -1,4 +1,4 @@
-// module Test.Unit.MemoAff
+// module Test.Unit
 
 exports.memoise = function(aff) {
   var fresh = true;
