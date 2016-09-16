@@ -4,6 +4,7 @@ module Test.Unit.Assert
   , expectFailure
   , equal
   , equal'
+  , shouldEqual
   ) where
 
 import Prelude
@@ -42,3 +43,11 @@ equal expected actual =
 equal' :: forall a e. (Eq a) => String -> a -> a -> Test e
 equal' reason expected actual =
   if expected == actual then success else failure reason
+
+-- | `shouldEqual` is equivalent to `equal`, with the arguments flipped,
+-- | for people who prefer the BDD style.
+-- |
+-- |     it "should do what I expect of it" do
+-- |       result `shouldEqual` "expected result"
+shouldEqual :: forall a e. (Eq a, Show a) => a -> a -> Test e
+shouldEqual = flip equal

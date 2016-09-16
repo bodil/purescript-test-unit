@@ -13,6 +13,8 @@ module Test.Unit
   , collectTests
   , collectResults
   , keepErrors
+  , describe
+  , it
   ) where
 
 import Prelude
@@ -116,3 +118,15 @@ keepErrors :: List (Tuple (List String) (Either Error Unit)) -> List (Tuple (Lis
 keepErrors = foldl run Nil
   where run s (Tuple label (Left err)) = snoc s $ Tuple label err
         run s _ = s
+
+
+
+-- Some aliases to keep Dan North happy.
+
+-- | `describe` is an alias for `suite` for BDD enthusiasts.
+describe :: forall e. String -> TestSuite e -> TestSuite e
+describe = suite
+
+-- | `it` is an alias for `test` for BDD enthusiasts.
+it :: forall e. String -> Test e -> TestSuite e
+it = test
