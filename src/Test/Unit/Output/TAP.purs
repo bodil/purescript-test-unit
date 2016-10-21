@@ -13,7 +13,7 @@ import Data.Either (Either(Right, Left))
 import Data.Foldable (foldl, sequence_)
 import Data.List (toUnfoldable, snoc, length, List(Nil))
 import Data.Maybe (Maybe(Just, Nothing))
-import Data.String (joinWith, split)
+import Data.String (Pattern(Pattern), joinWith, split)
 import Data.Tuple (snd, Tuple(Tuple))
 import Test.Unit (TestList, collectTests, TestSuite)
 
@@ -24,7 +24,7 @@ printStack err = case stack err of
   Nothing -> pure unit
   Just s -> do
     log $ "  stack: |-"
-    log $ joinWith "\n" (append "    " <$> split "\n" s)
+    log $ joinWith "\n" (append "    " <$> split (Pattern "\n") s)
 
 runTest :: forall e. TestSuite (console :: CONSOLE, avar :: AVAR | e) -> Aff (console :: CONSOLE, avar :: AVAR | e) (TestList (console :: CONSOLE, avar :: AVAR | e))
 runTest suite = do

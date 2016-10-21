@@ -18,7 +18,6 @@ module Test.Unit
   ) where
 
 import Prelude
-import Control.Alt ((<|>))
 import Control.Monad.Aff (Aff, attempt, makeAff, forkAff, cancelWith)
 import Control.Monad.Aff.AVar (modifyVar, makeVar', makeVar, killVar, putVar, takeVar, AVAR)
 import Control.Monad.Eff.Exception (error, Error)
