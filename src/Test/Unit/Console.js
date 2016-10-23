@@ -8,11 +8,9 @@ try { hasStderr = !!process.stderr; } catch (e) { hasStderr = false; }
 exports.hasStderr = hasStderr;
 
 var hasColours = (function() {
-  try {
-    if (!process) {
-      return false;
-    }
-  } catch (e) {}
+  if (typeof process === "undefined") {
+    return false;
+  }
   if (process.stdout && !process.stdout.isTTY) {
     return false;
   }
