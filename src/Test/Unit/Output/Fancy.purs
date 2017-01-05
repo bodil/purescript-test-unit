@@ -24,7 +24,7 @@ indent' :: forall a. List a -> String
 indent' = length >>> indent
 
 printLive :: forall e. TestSuite (testOutput :: TESTOUTPUT, avar :: AVAR | e) -> Aff (testOutput :: TESTOUTPUT, avar :: AVAR | e) (TestList (testOutput :: TESTOUTPUT, avar :: AVAR | e))
-printLive t = walkSuite runSuiteItem t
+printLive tst = walkSuite runSuiteItem tst
   where
     runSuiteItem path (TestGroup (Group label content) rest) = do
       liftEff do

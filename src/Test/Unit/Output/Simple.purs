@@ -24,7 +24,7 @@ indent' :: forall a. List a -> String
 indent' = length >>> indent
 
 printLive :: forall e. TestSuite (console :: CONSOLE, avar :: AVAR | e) -> Aff (console :: CONSOLE, avar :: AVAR | e) (TestList (console :: CONSOLE, avar :: AVAR | e))
-printLive t = walkSuite runSuiteItem t
+printLive tst = walkSuite runSuiteItem tst
   where
     runSuiteItem path (TestGroup (Group label content) _) = do
       log $ indent' path <> "- Suite: " <> label
