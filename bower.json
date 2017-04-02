@@ -16,14 +16,12 @@
     "output"
   ],
   "dependencies": {
-    "purescript-aff": "^2.0.0",
-    "purescript-either": "^2.1.0",
-    "purescript-prelude": "^2.1.0",
-    "purescript-eff": "^2.0.0",
-    "purescript-quickcheck": "^3.1.1",
-    "purescript-free": "^3.0.0",
-    "purescript-strings": "^2.0.1",
-    "purescript-lists": "^3.0.0",
-    "purescript-js-timers": "^2.0.0"
+    "purescript-aff": "^3.0.0",
+    "purescript-prelude": "^3.0.0",
+    "purescript-quickcheck": "^4.0.0",
+    "purescript-free": "^4.0.0",
+    "purescript-strings": "^3.0.0",
+    "purescript-lists": "^4.0.1",
+    "purescript-js-timers": "git://github.com/soupi/purescript-js-timers#1a70d545740493db154d3e4e90345cbc35d498ed"
   }
 }

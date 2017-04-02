@@ -25,7 +25,7 @@ foreign import exit :: forall e. Int -> Eff (console :: CONSOLE | e) Unit
 
 run :: forall e. Aff (console :: CONSOLE | e) Unit -> Eff (console :: CONSOLE | e) Unit
 run e = do
-  runAff errorHandler successHandler e
+  _ <- runAff errorHandler successHandler e
   pure unit
   where errorHandler _ = exit 1
         successHandler _ = pure unit

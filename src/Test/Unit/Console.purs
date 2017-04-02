@@ -1,9 +1,9 @@
 module Test.Unit.Console where
 
 import Prelude
-import Control.Monad.Eff (Eff)
+import Control.Monad.Eff (Eff, kind Effect)
 
-foreign import data TESTOUTPUT :: !
+foreign import data TESTOUTPUT :: Effect
 
 foreign import hasStderr :: Boolean
 
