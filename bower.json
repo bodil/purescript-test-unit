@@ -22,6 +22,6 @@
     "purescript-free": "^4.0.0",
     "purescript-strings": "^3.0.0",
     "purescript-lists": "^4.0.1",
-    "purescript-js-timers": "git://github.com/soupi/purescript-js-timers#1a70d545740493db154d3e4e90345cbc35d498ed"
+    "purescript-js-timers": "^3.0.0"
   }
 }
