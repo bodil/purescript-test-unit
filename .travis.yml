@@ -2,7 +2,7 @@ node_js:
   - "node"
 language: node_js
 install:
-  - npm install -g purescript pulp bower
+  - npm install -g purescript@^0.11.0 pulp@^0.11.0 bower
   - bower install
 script:
   - pulp test
