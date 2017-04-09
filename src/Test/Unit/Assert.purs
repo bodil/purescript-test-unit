@@ -32,7 +32,7 @@ expectFailure reason t = do
   either (const success) (const $ failure reason) r
 
 -- | Assert that two printable values are equal.
-equal :: forall a e. (Eq a, Show a) => a -> a -> Test e
+equal :: forall a e. Eq a => Show a => a -> a -> Test e
 equal expected actual =
   if expected == actual then success
   else failure $ "expected " <> show expected <>
@@ -49,5 +49,5 @@ equal' reason expected actual =
 -- |
 -- |     it "should do what I expect of it" do
 -- |       result `shouldEqual` "expected result"
-shouldEqual :: forall a e. (Eq a, Show a) => a -> a -> Test e
+shouldEqual :: forall a e. Eq a => Show a => a -> a -> Test e
 shouldEqual = flip equal

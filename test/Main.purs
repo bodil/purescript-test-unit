@@ -47,9 +47,9 @@ tests = do
 
 main :: forall e. Eff (timer :: TIMER, avar :: AVAR, console :: CONSOLE, random :: RANDOM, testOutput :: TESTOUTPUT | e) Unit
 main = run do
-  resetRef
+  _ <- resetRef
   runTestWith Fancy.runTest tests
-  resetRef
+  _ <- resetRef
   runTestWith Simple.runTest tests
-  resetRef
+  _ <- resetRef
   runTestWith TAP.runTest tests
