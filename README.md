@@ -42,11 +42,11 @@ main = runTest do
   suite "async code" do
     test "with async IO" do
       fileContents <- FS.readTextFile UTF8 "file.txt"
-      Assert.equal fileContents "hello here are your file contents"
+      Assert.equal "hello here are your file contents\n" fileContents
     test "async operation with a timeout" do
       timeout 100 $ do
         file2Contents <- FS.readTextFile UTF8 "file2.txt"
-        Assert.equal file2Contents "can we read a file in 100ms?"
+        Assert.equal "can we read a file in 100ms?\n" file2Contents
 ```
 
 Run tests using [`pulp test`](https://github.com/bodil/pulp) or just
