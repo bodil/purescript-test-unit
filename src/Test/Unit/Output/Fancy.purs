@@ -3,6 +3,7 @@ module Test.Unit.Output.Fancy
   ) where
 
 import Prelude
+
 import Control.Monad.Aff (attempt, Aff)
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff.Class (liftEff)
@@ -13,7 +14,7 @@ import Data.List (List, uncons, length)
 import Data.Maybe (Maybe(Just, Nothing), maybe)
 import Data.Monoid (mempty)
 import Data.Tuple (Tuple(Tuple))
-import Test.Unit (collectResults, TestList, keepErrors, walkSuite, TestF(..), TestSuite, Group(..))
+import Test.Unit (Group(..), TestF(..), TestList, TestSuite, collectResults, keepErrors, walkSuite)
 import Test.Unit.Console (printFail, savePos, restorePos, eraseLine, printPass, printLabel, print, TESTOUTPUT)
 
 indent :: Int -> String
@@ -26,13 +27,13 @@ indent' = length >>> indent
 printLive :: forall e. TestSuite (testOutput :: TESTOUTPUT, avar :: AVAR | e) -> Aff (testOutput :: TESTOUTPUT, avar :: AVAR | e) (TestList (testOutput :: TESTOUTPUT, avar :: AVAR | e))
 printLive tst = walkSuite runSuiteItem tst
   where
-    runSuiteItem path (TestGroup (Group label content) rest) = do
+    runSuiteItem path (TestGroup (Group label content) skip only rest) = do
       liftEff do
         print $ indent' path
         print "\x2192 Suite: "
         printLabel label
         void $ print "\n"
-    runSuiteItem path (TestUnit label t rest) = do
+    runSuiteItem path (TestUnit label _ _ t rest) = do
       liftEff do
         print $ indent' path
         savePos
@@ -53,6 +54,8 @@ printLive tst = walkSuite runSuiteItem tst
           print " because "
           printFail $ message err
           print "\n"
+    runSuiteItem _ (SkipUnit _) = pure unit
+
 
 printErrors :: forall e. TestList (testOutput :: TESTOUTPUT | e) -> Aff (testOutput :: TESTOUTPUT | e) Unit
 printErrors tests = do

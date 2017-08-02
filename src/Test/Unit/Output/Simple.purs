@@ -3,6 +3,7 @@ module Test.Unit.Output.Simple
   ) where
 
 import Prelude
+
 import Control.Monad.Aff (attempt, Aff)
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Aff.Console (log)
@@ -14,7 +15,7 @@ import Data.List (length, List, uncons)
 import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
 import Data.Monoid (mempty)
 import Data.Tuple (Tuple(Tuple))
-import Test.Unit (keepErrors, collectResults, walkSuite, TestList, TestF(..), TestSuite, Group(..))
+import Test.Unit (Group(..), TestF(..), TestList, TestSuite, collectResults, keepErrors, walkSuite)
 
 indent :: Int -> String
 indent 0 = mempty
@@ -26,10 +27,10 @@ indent' = length >>> indent
 printLive :: forall e. TestSuite (console :: CONSOLE, avar :: AVAR | e) -> Aff (console :: CONSOLE, avar :: AVAR | e) (TestList (console :: CONSOLE, avar :: AVAR | e))
 printLive tst = walkSuite runSuiteItem tst
   where
-    runSuiteItem path (TestGroup (Group label content) _) = do
+    runSuiteItem path (TestGroup (Group label content) skip only _) = do
       log $ indent' path <> "- Suite: " <> label
       pure unit
-    runSuiteItem path t'@(TestUnit label t rest) = do
+    runSuiteItem path t'@(TestUnit label _ _ t rest) = do
       result <- attempt t
       case result of
         (Right _) -> log $ indent' path <> "\x2713 Passed: " <> label
@@ -37,6 +38,7 @@ printLive tst = walkSuite runSuiteItem tst
           log $ indent' path <> "\x2620 Failed: " <> label
                              <> " because " <> message err
       pure unit
+    runSuiteItem _ (SkipUnit _) = pure unit
 
 printErrors :: forall e. TestList (console :: CONSOLE | e) -> Aff (console :: CONSOLE | e) Unit
 printErrors tests = do
