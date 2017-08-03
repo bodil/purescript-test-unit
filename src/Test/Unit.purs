@@ -19,6 +19,7 @@ module Test.Unit
   , filterTests
   , collectTests
   , collectResults
+  , countSkippedTests
   , keepErrors
   , describe
   , it
@@ -90,17 +91,17 @@ data Group e = Group String (TestSuite e)
 
 data TestF e a = TestGroup (Group e) Skip Only a
                | TestUnit String Skip Only (Test e) a
-               | SkipUnit a
+               | SkipUnit (TestF e a) a
 
 type TestSuite e = Free (TestF e) Unit
 
-skipUnit :: forall a e. a -> Free (TestF e) a
-skipUnit = liftF <<< SkipUnit
+skipUnit :: forall a e. (TestF e a) -> a -> Free (TestF e) a
+skipUnit t a = liftF <<< SkipUnit t $ a
 
 instance functorTestF :: Functor (TestF e) where
   map f (TestGroup g s o a) = TestGroup g s o (f a)
   map f (TestUnit l s o t a) = TestUnit l s o t (f a)
-  map f (SkipUnit a) = SkipUnit (f a)
+  map f (SkipUnit t a) = SkipUnit (f <$> t) (f a)
 
 -- | Define a test suite, which can contain a number of nested suites
 -- | as well as tests.
@@ -137,14 +138,14 @@ hasOnly t = execState (foldFree go t) ff
     go :: TestF e ~> State (Tuple Only Only)
     go (TestGroup (Group _ t') _ only r) = modify (disj (hasOnly t') <<< disj (Tuple only ff)) $> r
     go (TestUnit _ _ only _ r) = modify (disj (Tuple ff only)) $> r
-    go (SkipUnit r) = pure r
+    go (SkipUnit _ r) = pure r
 
 filterEmptyNodes :: forall e. Free (TestF e) ~> Free (TestF e)
 filterEmptyNodes = runFreeM go
   where
 
     go :: TestF e ~> Free (TestF e)
-    go tg@(TestGroup (Group _ t) _ _ r) | isEmpty t = skipUnit r
+    go tg@(TestGroup (Group _ t) _ _ r) | isEmpty t = skipUnit tg r
                                         | otherwise = liftF tg
     go t = liftF t
 
@@ -154,7 +155,25 @@ filterEmptyNodes = runFreeM go
     empty :: TestF e ~> State Boolean 
     empty tg@(TestGroup (Group _ t) _ _ r) = modify (conj $ isEmpty t) $> r
     empty (TestUnit _ _ _ _ r) = modify (conj false) $> r
-    empty (SkipUnit r) = pure r
+    empty (SkipUnit _ r) = pure r
+
+countTests :: forall a e. Free (TestF e) a -> Int
+countTests ts = execState (foldFree go ts) 0
+  where
+    go :: TestF e ~> State Int
+    go (SkipUnit _ a) = pure a
+    go (TestUnit _ _ _ _ a) = modify (add 1) $> a
+    go (TestGroup (Group _ t) _ _ a) = modify (add (countTests t)) $> a
+
+countSkippedTests :: forall a e. Free (TestF e) a -> Int
+countSkippedTests ts = execState (foldFree go ts) 0
+  where
+    go :: TestF e ~> State Int
+    go (SkipUnit (TestUnit _ _ _ _ _) a) = modify (add 1) $> a
+    go (SkipUnit (TestGroup (Group _ t) _ _ _) a) = modify (add (countTests t)) $> a
+    go (SkipUnit (SkipUnit _ _) a) = pure a
+    go (TestUnit _ _ _ _ a) = pure a
+    go (TestGroup (Group _ t) _ _ a) = modify (add (countSkippedTests t)) $> a
 
 -- | Filter suites and tests with `Only` and `Skip` flags and removes suites
 -- | that do not contain any tests.
@@ -165,13 +184,13 @@ filterTests t =
       go :: Only -> TestF e ~> Free (TestF e)
       go _ tg@(TestGroup (Group n t') s o a)
         = if un Skip s
-            then skipUnit a
+            then skipUnit tg a
             else liftF $ TestGroup (Group n (runFreeM (go o) t')) s o a
       go inOnly tu@(TestUnit n s o t' a)
         = case un Only (os `implies` inOnly && ot `implies` o) && not (un Skip s) of
             true  -> liftF tu
-            false -> skipUnit a
-      go _ su@(SkipUnit a)  = liftF su
+            false -> skipUnit tu a
+      go _ su@(SkipUnit _ _)  = liftF su
 
   in filterEmptyNodes $ runFreeM (go (Only false)) t
 
@@ -194,7 +213,7 @@ walkSuite runItem tests = do
         modifyVar (Cons (Tuple (snoc path label) aff)) coll
         runItem path t
         pure rest
-      walkItem path (SkipUnit rest) = do
+      walkItem path (SkipUnit _ rest) = do
         pure rest
   runFreeM (walkItem Nil) tests
   res <- takeVar coll
