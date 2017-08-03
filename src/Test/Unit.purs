@@ -31,7 +31,7 @@ import Control.Monad.Aff (Aff, attempt, makeAff, forkAff, cancelWith)
 import Control.Monad.Aff.AVar (modifyVar, makeVar', makeVar, killVar, putVar, takeVar, AVAR)
 import Control.Monad.Eff.Exception (error, Error)
 import Control.Monad.Eff.Timer (TIMER, setTimeout)
-import Control.Monad.Free (Free, foldFree, liftF, runFreeM)
+import Control.Monad.Free (Free, foldFree, liftF, runFreeM, substFree)
 import Control.Monad.State (State, execState)
 import Control.Monad.State.Class (modify)
 import Data.Either (Either(Left), either)
@@ -141,7 +141,7 @@ hasOnly t = execState (foldFree go t) ff
     go (SkipUnit _ r) = pure r
 
 filterEmptyNodes :: forall e. Free (TestF e) ~> Free (TestF e)
-filterEmptyNodes = runFreeM go
+filterEmptyNodes = substFree go
   where
 
     go :: TestF e ~> Free (TestF e)
@@ -185,14 +185,14 @@ filterTests t =
       go _ tg@(TestGroup (Group n t') s o a)
         = if un Skip s
             then skipUnit tg a
-            else liftF $ TestGroup (Group n (runFreeM (go o) t')) s o a
+            else liftF $ TestGroup (Group n (substFree (go o) t')) s o a
       go inOnly tu@(TestUnit n s o t' a)
         = case un Only (os `implies` inOnly && ot `implies` o) && not (un Skip s) of
             true  -> liftF tu
             false -> skipUnit tu a
       go _ su@(SkipUnit _ _)  = liftF su
 
-  in filterEmptyNodes $ runFreeM (go (Only false)) t
+  in filterEmptyNodes $ substFree (go (Only false)) t
 
 -- | A list of collected tests, represented as a tuple of each test's path
 -- | and the `Test` itself. The path, in this case, means the name of the
