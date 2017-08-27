@@ -13,7 +13,7 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Data.List (length)
-import Test.Unit (TestList, TestSuite, collectResults, countSkippedTests, filterTests, keepErrors)
+import Test.Unit (TestList, TestSuite, collectResults, filterTests, keepErrors)
 import Test.Unit.Console (hasColours, hasStderr, TESTOUTPUT)
 import Test.Unit.Output.Fancy as Fancy
 import Test.Unit.Output.Simple as Simple
