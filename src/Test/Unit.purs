@@ -1,5 +1,6 @@
 module Test.Unit
   ( Test(..)
+  , TestEffects(..)
   , TestF(..)
   , Group(..)
   , TestSuite
@@ -30,6 +31,7 @@ import Prelude
 import Control.Monad.Aff (Aff, attempt, makeAff, forkAff, cancelWith)
 import Control.Monad.Aff.AVar (modifyVar, makeVar', makeVar, killVar, putVar, takeVar, AVAR)
 import Control.Monad.Eff.Exception (error, Error)
+import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Timer (TIMER, setTimeout)
 import Control.Monad.Free (Free, foldFree, liftF, runFreeM, substFree)
 import Control.Monad.State (State, execState)
@@ -41,10 +43,12 @@ import Data.List (snoc, List(Cons, Nil))
 import Data.Newtype (class Newtype, over, over2, un)
 import Data.Traversable (for)
 import Data.Tuple (Tuple(Tuple))
+import Test.Unit.Console (TESTOUTPUT)
 
 foreign import memoise :: forall a e. Aff e a -> Aff e a
 
 type Test e = Aff e Unit
+type TestEffects e = (console :: CONSOLE, testOutput :: TESTOUTPUT, avar :: AVAR | e)
 
 -- | The basic value for a succeeding test.
 success :: forall e. Test e

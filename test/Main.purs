@@ -5,14 +5,12 @@ import Prelude
 import Control.Monad.Aff (Aff, makeAff)
 import Control.Monad.Aff.AVar (AVAR, AVar, makeVar, makeVar', modifyVar, putVar, tryTakeVar)
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE)
 import Control.Monad.Eff.Random (RANDOM)
 import Control.Monad.Eff.Timer (TIMER)
 import Data.Maybe (Maybe(Just))
 import Test.QuickCheck (Result, (===))
-import Test.Unit (Test, TestSuite, failure, suite, suiteOnly, suiteSkip, test, testOnly, testSkip, timeout)
+import Test.Unit (Test, TestEffects, TestSuite, failure, suite, suiteOnly, suiteSkip, test, testOnly, testSkip, timeout)
 import Test.Unit.Assert as Assert
-import Test.Unit.Console (TESTOUTPUT)
 import Test.Unit.Main (runTestWith, run)
 import Test.Unit.Output.Fancy as Fancy
 import Test.Unit.Output.Simple as Simple
@@ -52,7 +50,7 @@ tests = do
     ref <- incRef
     Assert.equal 1 ref
 
-main :: forall e. Eff (timer :: TIMER, avar :: AVAR, console :: CONSOLE, random :: RANDOM, testOutput :: TESTOUTPUT | e) Unit
+main :: forall e. Eff (TestEffects (timer :: TIMER, random :: RANDOM | e)) Unit
 main = run do
   _ <- resetRef
   runTestWith Fancy.runTest tests
