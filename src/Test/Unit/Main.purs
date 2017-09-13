@@ -14,6 +14,7 @@ import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Class (liftEff)
 import Control.Monad.Eff.Console (CONSOLE)
+import Data.Either (either)
 import Data.List (length)
 import Test.Unit (collectResults, TestList, keepErrors, TestSuite)
 import Test.Unit.Console (hasColours, hasStderr, TESTOUTPUT)
@@ -25,7 +26,7 @@ foreign import exit :: forall e. Int -> Eff (console :: CONSOLE | e) Unit
 
 run :: forall e. Aff (console :: CONSOLE | e) Unit -> Eff (console :: CONSOLE | e) Unit
 run e = do
-  _ <- runAff errorHandler successHandler e
+  _ <- runAff (either errorHandler successHandler) e
   pure unit
   where errorHandler _ = exit 1
         successHandler _ = pure unit

@@ -14,7 +14,7 @@ import Data.List (length, List, uncons)
 import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
 import Data.Monoid (mempty)
 import Data.Tuple (Tuple(Tuple))
-import Test.Unit (keepErrors, collectResults, walkSuite, TestList, TestF(..), TestSuite, Group(..))
+import Test.Unit (keepErrors, collectResults, walkSuite, TestList, TestSuite)
 
 indent :: Int -> String
 indent 0 = mempty
@@ -26,10 +26,10 @@ indent' = length >>> indent
 printLive :: forall e. TestSuite (console :: CONSOLE, avar :: AVAR | e) -> Aff (console :: CONSOLE, avar :: AVAR | e) (TestList (console :: CONSOLE, avar :: AVAR | e))
 printLive tst = walkSuite runSuiteItem tst
   where
-    runSuiteItem path (TestGroup (Group label content) _) = do
+    runSuiteItem path (Left label) = do
       log $ indent' path <> "- Suite: " <> label
       pure unit
-    runSuiteItem path t'@(TestUnit label t rest) = do
+    runSuiteItem path (Right (Tuple label t)) = do
       result <- attempt t
       case result of
         (Right _) -> log $ indent' path <> "\x2713 Passed: " <> label
