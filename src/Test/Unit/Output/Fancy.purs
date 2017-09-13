@@ -3,6 +3,7 @@ module Test.Unit.Output.Fancy
   ) where
 
 import Prelude
+
 import Control.Monad.Aff (attempt, Aff)
 import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff.Class (liftEff)
@@ -13,7 +14,7 @@ import Data.List (List, uncons, length)
 import Data.Maybe (Maybe(Just, Nothing), maybe)
 import Data.Monoid (mempty)
 import Data.Tuple (Tuple(Tuple))
-import Test.Unit (collectResults, TestList, keepErrors, walkSuite, TestSuite)
+import Test.Unit (TestList, TestSuite, collectResults, countSkippedTests, keepErrors, walkSuite)
 import Test.Unit.Console (printFail, savePos, restorePos, eraseLine, printPass, printLabel, print, TESTOUTPUT)
 
 indent :: Int -> String
@@ -54,18 +55,23 @@ printLive tst = walkSuite runSuiteItem tst
           printFail $ message err
           print "\n"
 
-printErrors :: forall e. TestList (testOutput :: TESTOUTPUT | e) -> Aff (testOutput :: TESTOUTPUT | e) Unit
-printErrors tests = do
+
+printErrors :: forall e. TestList (testOutput :: TESTOUTPUT | e) -> Int -> Aff (testOutput :: TESTOUTPUT | e) Unit
+printErrors tests skCount = do
   results <- collectResults tests
   let errors = keepErrors results
+      skMsg = case skCount of
+          0 -> ""
+          1 -> " (1 test skipped)"
+          i -> " (" <> show i <> " tests skipped)"
   liftEff do
     case length errors of
-      0 -> printPass $ "\nAll " <> show (length results) <> " tests passed! 🎉\n\n"
+      0 -> printPass $ "\nAll " <> show (length results) <> " tests passed" <> skMsg <> "! 🎉\n"
       1 -> do
-        printFail "\n1 test failed:\n\n"
+        printFail $ "\n1 test failed" <> skMsg <>":\n\n"
         list errors
       i -> do
-        printFail $ "\n" <> show i <> " tests failed:\n\n"
+        printFail $ "\n" <> show i <> " tests failed" <> skMsg <> ":\n\n"
         list errors
   where list = traverse_ printItem
         printItem (Tuple path err) = do
@@ -84,5 +90,5 @@ printErrors tests = do
 runTest :: forall e. TestSuite (testOutput :: TESTOUTPUT, avar :: AVAR | e) -> Aff (testOutput :: TESTOUTPUT, avar :: AVAR | e) (TestList (testOutput :: TESTOUTPUT, avar :: AVAR | e))
 runTest suite = do
   tests <- printLive suite
-  printErrors tests
+  printErrors tests (countSkippedTests suite)
   pure tests

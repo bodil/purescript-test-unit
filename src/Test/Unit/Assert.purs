@@ -8,8 +8,11 @@ module Test.Unit.Assert
   ) where
 
 import Prelude
-import Data.Either (either)
+
 import Control.Monad.Aff (attempt)
+import Control.Monad.Eff.Exception (error, message)
+import Control.Monad.Error.Class (catchError, throwError)
+import Data.Either (either)
 import Test.Unit (success, failure, Test)
 
 -- | Given a failure reason and a boolean, either succeed if the boolean is
@@ -43,6 +46,11 @@ equal expected actual =
 equal' :: forall a e. (Eq a) => String -> a -> a -> Test e
 equal' reason expected actual =
   if expected == actual then success else failure reason
+
+-- | Assert that two printable values are equal, like `equal` but also adds
+-- | a title string to the error message.
+equal'' :: forall a e. Eq a => Show a => String -> a -> a -> Test e
+equal'' name a b = catchError (equal a b) (throwError <<< error <<< ((name <> " ") <> _) <<< message)
 
 -- | `shouldEqual` is equivalent to `equal`, with the arguments flipped,
 -- | for people who prefer the BDD style.
