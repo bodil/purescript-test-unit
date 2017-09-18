@@ -15,7 +15,7 @@
     "output"
   ],
   "dependencies": {
-    "purescript-aff": "^3.0.0",
+    "purescript-aff": "^4.0.0",
     "purescript-either": "^3.0.0",
     "purescript-prelude": "^3.0.0",
     "purescript-eff": "^3.0.0",

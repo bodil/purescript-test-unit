@@ -14,7 +14,7 @@ import Data.List (List, uncons, length)
 import Data.Maybe (Maybe(Just, Nothing), maybe)
 import Data.Monoid (mempty)
 import Data.Tuple (Tuple(Tuple))
-import Test.Unit (Group(..), TestF(..), TestList, TestSuite, collectResults, countSkippedTests, keepErrors, walkSuite)
+import Test.Unit (TestList, TestSuite, collectResults, countSkippedTests, keepErrors, walkSuite)
 import Test.Unit.Console (printFail, savePos, restorePos, eraseLine, printPass, printLabel, print, TESTOUTPUT)
 
 indent :: Int -> String
@@ -27,13 +27,13 @@ indent' = length >>> indent
 printLive :: forall e. TestSuite (testOutput :: TESTOUTPUT, avar :: AVAR | e) -> Aff (testOutput :: TESTOUTPUT, avar :: AVAR | e) (TestList (testOutput :: TESTOUTPUT, avar :: AVAR | e))
 printLive tst = walkSuite runSuiteItem tst
   where
-    runSuiteItem path (TestGroup (Group label content) _ _ rest) = do
+    runSuiteItem path (Left label) = do
       liftEff do
         print $ indent' path
         print "\x2192 Suite: "
         printLabel label
         void $ print "\n"
-    runSuiteItem path (TestUnit label _ _ t rest) = do
+    runSuiteItem path (Right (Tuple label t)) = do
       liftEff do
         print $ indent' path
         savePos
@@ -54,7 +54,6 @@ printLive tst = walkSuite runSuiteItem tst
           print " because "
           printFail $ message err
           print "\n"
-    runSuiteItem _ (SkipUnit _ _) = pure unit
 
 
 printErrors :: forall e. TestList (testOutput :: TESTOUTPUT | e) -> Int -> Aff (testOutput :: TESTOUTPUT | e) Unit
