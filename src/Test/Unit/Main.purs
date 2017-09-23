@@ -25,7 +25,8 @@ import Test.Unit.Output.TAP as TAP
 -- | Works on Node and Phantom. Will have no effect on other platforms.
 foreign import exit :: forall e. Int -> Eff (console :: CONSOLE | e) Unit
 
-run :: forall e. Aff (console :: CONSOLE | e) Unit -> Eff (console :: CONSOLE | e) Unit
+run :: forall e. Aff (console :: CONSOLE | e) Unit 
+    -> Eff (console :: CONSOLE | e) Unit
 run e = do
   _ <- runAff (either errorHandler successHandler) e
   pure unit
@@ -33,14 +34,23 @@ run e = do
         successHandler _ = pure unit
 
 -- | Run a test suite using the provided test runner.
-runTestWith  :: forall e. (TestSuite (console :: CONSOLE | e) -> Aff (console :: CONSOLE | e) (TestList (console :: CONSOLE | e))) -> TestSuite (console :: CONSOLE | e) -> Aff (console :: CONSOLE | e) Unit
+runTestWith  :: forall e. (TestSuite (console :: CONSOLE | e)
+             -> Aff (console :: CONSOLE | e) 
+               (TestList (console :: CONSOLE | e)))
+             -> TestSuite (console :: CONSOLE | e) 
+             -> Aff (console :: CONSOLE | e) Unit
 runTestWith runner suite = do
   results <- runner (filterTests suite) >>= collectResults
   let errs = keepErrors results
   if length errs > 0 then liftEff (exit 1) else pure unit
 
 -- | Run a test suite, picking the most appropriate test runner.
-runTest :: forall e. TestSuite (console :: CONSOLE, testOutput :: TESTOUTPUT, avar :: AVAR | e) -> Eff (console :: CONSOLE, testOutput :: TESTOUTPUT, avar :: AVAR | e) Unit
+runTest :: forall e. TestSuite ( console :: CONSOLE 
+                               , testOutput :: TESTOUTPUT
+                               , avar :: AVAR | e ) 
+        -> Eff ( console :: CONSOLE
+               , testOutput :: TESTOUTPUT
+               , avar :: AVAR | e ) Unit
 runTest suite = run $ runTestWith runner suite
   where runner = if TAP.requested
                  then TAP.runTest
