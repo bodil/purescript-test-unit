@@ -1,28 +1,32 @@
 module Test.Unit.Console where
 
 import Prelude
-import Control.Monad.Eff (kind Effect, Eff)
 
-foreign import data TESTOUTPUT :: Effect
+import Effect (Effect)
+import Effect.Class (class MonadEffect, liftEffect)
+import Effect.Console as EC
+
+log :: forall a. MonadEffect a => String -> a Unit
+log = liftEffect <<< EC.log
 
 foreign import hasStderr :: Boolean
 
 foreign import hasColours :: Boolean
 
-foreign import consoleLog :: forall e. String -> Eff (testOutput :: TESTOUTPUT | e) Unit
+foreign import consoleLog :: String -> Effect Unit
 
-foreign import consoleError :: forall e. String -> Eff (testOutput :: TESTOUTPUT | e) Unit
+foreign import consoleError :: String -> Effect Unit
 
-foreign import savePos :: forall e. Eff (testOutput :: TESTOUTPUT | e) Unit
+foreign import savePos :: Effect Unit
 
-foreign import restorePos :: forall e. Eff (testOutput :: TESTOUTPUT | e) Unit
+foreign import restorePos :: Effect Unit
 
-foreign import eraseLine :: forall e. Eff (testOutput :: TESTOUTPUT | e) Unit
+foreign import eraseLine :: Effect Unit
 
-foreign import print :: forall e. String -> Eff (testOutput :: TESTOUTPUT | e) Unit
+foreign import print :: String -> Effect Unit
 
-foreign import printLabel:: forall e. String -> Eff (testOutput :: TESTOUTPUT | e) Unit
+foreign import printLabel:: String -> Effect Unit
 
-foreign import printFail :: forall e. String -> Eff (testOutput :: TESTOUTPUT | e) Unit
+foreign import printFail :: String -> Effect Unit
 
-foreign import printPass :: forall e. String -> Eff (testOutput :: TESTOUTPUT | e) Unit
+foreign import printPass :: String -> Effect Unit

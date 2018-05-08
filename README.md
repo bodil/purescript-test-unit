@@ -9,7 +9,7 @@ An asynchronous unit test runner for PureScript.
 Test-Unit tests are simply
 [Aff](https://github.com/slamdata/purescript-aff) actions, which can
 either succeed (test passed) or fail (test did not pass). The type for
-these tests is `Test e`, which is just an alias for `Aff e Unit`.
+these tests is `Test`, which is just an alias for `Aff Unit`.
 
 The `Test.Unit.Assert` module contains a number of functions for
 making common assertions. The most straightforward is `assert`, which

@@ -4,29 +4,28 @@ module Test.Unit.Output.TAP
   ) where
 
 import Prelude
-import Control.Monad.Aff (attempt, Aff)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Aff.Console (log)
-import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Exception (Error, message, stack)
+
 import Data.Either (Either(Right, Left))
 import Data.Foldable (foldl, sequence_)
 import Data.List (toUnfoldable, snoc, length, List(Nil))
 import Data.Maybe (Maybe(Just, Nothing))
 import Data.String (Pattern(Pattern), joinWith, split)
 import Data.Tuple (snd, Tuple(Tuple))
+import Effect.Aff (attempt, Aff)
+import Effect.Exception (Error, message, stack)
 import Test.Unit (TestList, collectTests, TestSuite)
+import Test.Unit.Console (log)
 
 foreign import requested :: Boolean
 
-printStack :: forall e. Error -> Aff (console :: CONSOLE | e) Unit
+printStack :: Error -> Aff Unit
 printStack err = case stack err of
   Nothing -> pure unit
   Just s -> do
     log $ "  stack: |-"
     log $ joinWith "\n" (append "    " <$> split (Pattern "\n") s)
 
-runTest :: forall e. TestSuite (console :: CONSOLE, avar :: AVAR | e) -> Aff (console :: CONSOLE, avar :: AVAR | e) (TestList (console :: CONSOLE, avar :: AVAR | e))
+runTest :: TestSuite -> Aff TestList
 runTest suite = do
   tests <- collectTests suite
   log $ "1.." <> show (length tests)

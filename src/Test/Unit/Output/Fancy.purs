@@ -4,18 +4,16 @@ module Test.Unit.Output.Fancy
 
 import Prelude
 
-import Control.Monad.Aff (attempt, Aff)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Eff.Class (liftEff)
-import Control.Monad.Eff.Exception (message, stack)
+import Effect.Aff (attempt, Aff)
+import Effect.Class (liftEffect)
+import Effect.Exception (message, stack)
 import Data.Either (Either(Left, Right))
 import Data.Foldable (traverse_)
 import Data.List (List, uncons, length)
 import Data.Maybe (Maybe(Just, Nothing), maybe)
-import Data.Monoid (mempty)
 import Data.Tuple (Tuple(Tuple))
 import Test.Unit (TestList, TestSuite, collectResults, countSkippedTests, keepErrors, walkSuite)
-import Test.Unit.Console (printFail, savePos, restorePos, eraseLine, printPass, printLabel, print, TESTOUTPUT)
+import Test.Unit.Console (printFail, savePos, restorePos, eraseLine, printPass, printLabel, print)
 
 indent :: Int -> String
 indent 0 = mempty
@@ -24,17 +22,17 @@ indent n = "  " <> indent (n - 1)
 indent' :: forall a. List a -> String
 indent' = length >>> indent
 
-printLive :: forall e. TestSuite (testOutput :: TESTOUTPUT, avar :: AVAR | e) -> Aff (testOutput :: TESTOUTPUT, avar :: AVAR | e) (TestList (testOutput :: TESTOUTPUT, avar :: AVAR | e))
+printLive :: TestSuite -> Aff TestList
 printLive tst = walkSuite runSuiteItem tst
   where
     runSuiteItem path (Left label) = do
-      liftEff do
+      liftEffect do
         print $ indent' path
         print "\x2192 Suite: "
         printLabel label
         void $ print "\n"
     runSuiteItem path (Right (Tuple label t)) = do
-      liftEff do
+      liftEffect do
         print $ indent' path
         savePos
         print "\x2192 Running: "
@@ -42,12 +40,12 @@ printLive tst = walkSuite runSuiteItem tst
         restorePos
       result <- attempt t
       void $ case result of
-        (Right _) -> liftEff do
+        (Right _) -> liftEffect do
           eraseLine
           printPass "\x2713 Passed: "
           printLabel label
           print "\n"
-        (Left err) -> liftEff do
+        (Left err) -> liftEffect do
           eraseLine
           printFail "\x2620 Failed: "
           printLabel label
@@ -56,7 +54,7 @@ printLive tst = walkSuite runSuiteItem tst
           print "\n"
 
 
-printErrors :: forall e. TestList (testOutput :: TESTOUTPUT | e) -> Int -> Aff (testOutput :: TESTOUTPUT | e) Unit
+printErrors :: TestList -> Int -> Aff Unit
 printErrors tests skCount = do
   results <- collectResults tests
   let errors = keepErrors results
@@ -64,7 +62,7 @@ printErrors tests skCount = do
           0 -> ""
           1 -> " (1 test skipped)"
           i -> " (" <> show i <> " tests skipped)"
-  liftEff do
+  liftEffect do
     case length errors of
       0 -> printPass $ "\nAll " <> show (length results) <> " tests passed" <> skMsg <> "! 🎉\n"
       1 -> do
@@ -87,7 +85,7 @@ printErrors tests skCount = do
           maybe (printFail $ message err) printFail (stack err)
           print "\n"
 
-runTest :: forall e. TestSuite (testOutput :: TESTOUTPUT, avar :: AVAR | e) -> Aff (testOutput :: TESTOUTPUT, avar :: AVAR | e) (TestList (testOutput :: TESTOUTPUT, avar :: AVAR | e))
+runTest :: TestSuite -> Aff TestList
 runTest suite = do
   tests <- printLive suite
   printErrors tests (countSkippedTests suite)

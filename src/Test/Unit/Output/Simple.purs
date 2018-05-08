@@ -4,18 +4,15 @@ module Test.Unit.Output.Simple
 
 import Prelude
 
-import Control.Monad.Aff (attempt, Aff)
-import Control.Monad.Aff.AVar (AVAR)
-import Control.Monad.Aff.Console (log)
-import Control.Monad.Eff.Console (CONSOLE)
-import Control.Monad.Eff.Exception (message, stack)
 import Data.Either (Either(Left, Right))
 import Data.Foldable (traverse_)
 import Data.List (length, List, uncons)
 import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
-import Data.Monoid (mempty)
 import Data.Tuple (Tuple(Tuple))
+import Effect.Aff (attempt, Aff)
+import Effect.Exception (message, stack)
 import Test.Unit (TestList, TestSuite, collectResults, countSkippedTests, keepErrors, walkSuite)
+import Test.Unit.Console (log)
 
 indent :: Int -> String
 indent 0 = mempty
@@ -24,7 +21,7 @@ indent n = "  " <> indent (n - 1)
 indent' :: forall a. List a -> String
 indent' = length >>> indent
 
-printLive :: forall e. TestSuite (console :: CONSOLE, avar :: AVAR | e) -> Aff (console :: CONSOLE, avar :: AVAR | e) (TestList (console :: CONSOLE, avar :: AVAR | e))
+printLive :: TestSuite -> Aff TestList
 printLive tst = walkSuite runSuiteItem tst
   where
     runSuiteItem path (Left label) = do
@@ -39,7 +36,7 @@ printLive tst = walkSuite runSuiteItem tst
                              <> " because " <> message err
       pure unit
 
-printErrors :: forall e. TestList (console :: CONSOLE | e) -> Int -> Aff (console :: CONSOLE | e) Unit
+printErrors :: TestList -> Int -> Aff Unit
 printErrors tests skCount = do
   results <- collectResults tests
   let errors = keepErrors results
@@ -68,7 +65,7 @@ printErrors tests skCount = do
             printHeader (level + 1) tail
         printError err = log $ "Error: " <> fromMaybe (message err) (stack err)
 
-runTest :: forall e. TestSuite (console :: CONSOLE, avar :: AVAR | e) -> Aff (console :: CONSOLE, avar :: AVAR | e) (TestList (console :: CONSOLE, avar :: AVAR | e))
+runTest :: TestSuite -> Aff TestList
 runTest suite = do
   tests <- printLive suite
   printErrors tests (countSkippedTests suite)
