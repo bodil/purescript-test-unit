@@ -17,6 +17,9 @@ import Test.Unit.QuickCheck (quickCheck)
 theCommutativeProperty :: Int -> Int -> Result
 theCommutativeProperty a b = (a + b) === (b + a)
 
+modify' :: forall a. (a -> a) -> Ref.Ref a -> Effect Unit
+modify' m s = void $ Ref.modify m s
+
 tests :: Ref.Ref Int -> TestSuite
 tests ref = do
   test "basic asserts" do
@@ -33,7 +36,7 @@ tests ref = do
     test "a test in a test suite" do
       pure unit
   test "tests run only once: part 1" do
-    liftEffect $ Ref.modify (_ + 1) ref
+    liftEffect $ modify' (_ + 1) ref
   test "tests run only once: part deux" do
     Assert.equal 1 =<< liftEffect (Ref.read ref)
   suite "another suite" do
@@ -63,14 +66,14 @@ main = run do
           failure "skippedTestError"
     suite "not skipped suite" do
       test "not skipped test" do
-        liftEffect $ Ref.modify (add 1) var1
+        liftEffect $ modify' (add 1) var1
         pure unit
       suiteSkip "skipped subsuite" do
         test "skip 3" do
           failure "skippedTestError"
       suite "not skipped inner suite" do
         test "also not skipped" do
-          liftEffect $ Ref.modify (add 1) var1
+          liftEffect $ modify' (add 1) var1
           pure unit
 
   runTestWith Fancy.runTest do
@@ -81,7 +84,7 @@ main = run do
   var2 <- liftEffect $ Ref.new 0
   runTestWith Fancy.runTest do
     testOnly "only 1" do
-      liftEffect $ Ref.modify (add 1) var2
+      liftEffect $ modify' (add 1) var2
       pure unit
     test "skipped 1" do
       failure "onlyTestError"
@@ -89,7 +92,7 @@ main = run do
       test "skipped 2" do
         failure "onlyTestError"
       testOnly "only 2" do
-        liftEffect $ Ref.modify (add 1) var2
+        liftEffect $ modify' (add 1) var2
         pure unit
     suite "empty suite" do
       test "skipped 3" do
