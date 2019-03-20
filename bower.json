@@ -19,7 +19,7 @@
     "purescript-either": "^4.0.0",
     "purescript-prelude": "^4.0.0",
     "purescript-effect": "^2.0.0",
-    "purescript-quickcheck": "^5.0.0",
+    "purescript-quickcheck": "^6.0.0",
     "purescript-free": "^5.0.0",
     "purescript-strings": "^4.0.0",
     "purescript-lists": "^5.0.0",
