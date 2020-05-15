@@ -90,6 +90,11 @@ with:
 main = run $ runTestWith Test.Unit.Output.TAP.runTest do --...
 ```
 
+To show "fancy" output without dumping the JavaScript stack, use the `FancyNoStack` runner:
+```purescript
+main = run $ runTestWith Test.Unit.Output.FancyNoStack.runTest do --...
+```
+
 You may also supply your own custom test runner - study one of the existing test runners to learn how.
 
 ## Licence

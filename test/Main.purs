@@ -10,6 +10,7 @@ import Test.Unit (TestSuite, failure, suite, suiteOnly, suiteSkip, test, testOnl
 import Test.Unit.Assert as Assert
 import Test.Unit.Main (runTestWith, run)
 import Test.Unit.Output.Fancy as Fancy
+import Test.Unit.Output.FancyNoStack as FancyNoStack
 import Test.Unit.Output.Simple as Simple
 import Test.Unit.Output.TAP as TAP
 import Test.Unit.QuickCheck (quickCheck)
@@ -49,6 +50,8 @@ main :: Effect Unit
 main = run do
   ref <- liftEffect $ Ref.new 0
   runTestWith Fancy.runTest $ tests ref
+  liftEffect $ Ref.write 0 ref
+  runTestWith FancyNoStack.runTest $ tests ref
   liftEffect $ Ref.write 0 ref
   runTestWith Simple.runTest $ tests ref
   liftEffect $ Ref.write 0 ref
