@@ -15,15 +15,15 @@
     "output"
   ],
   "dependencies": {
-    "purescript-aff": "^5.0.0",
-    "purescript-either": "^4.0.0",
-    "purescript-prelude": "^4.0.0",
-    "purescript-effect": "^2.0.0",
-    "purescript-quickcheck": "^6.0.0",
-    "purescript-free": "^5.0.0",
-    "purescript-strings": "^4.0.0",
-    "purescript-lists": "^5.0.0",
-    "purescript-js-timers": "^4.0.0",
-    "purescript-avar": "^3.0.0"
+    "purescript-aff": "^6.0.0",
+    "purescript-either": "^5.0.0",
+    "purescript-prelude": "^5.0.0",
+    "purescript-effect": "^3.0.0",
+    "purescript-quickcheck": "^7.0.0",
+    "purescript-free": "^6.0.0",
+    "purescript-strings": "^5.0.0",
+    "purescript-lists": "^6.0.0",
+    "purescript-js-timers": "^5.0.0",
+    "purescript-avar": "^4.0.0"
   }
 }
