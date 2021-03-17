@@ -4,6 +4,7 @@ module Test.Unit.Assert
   , expectFailure
   , equal
   , equal'
+  , equal''
   , shouldEqual
   ) where
 
