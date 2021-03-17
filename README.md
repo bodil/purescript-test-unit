@@ -6,19 +6,11 @@ An asynchronous unit test runner for PureScript.
 
 ## Usage
 
-Test-Unit tests are simply
-[Aff](https://github.com/slamdata/purescript-aff) actions, which can
-either succeed (test passed) or fail (test did not pass). The type for
-these tests is `Test`, which is just an alias for `Aff Unit`.
+Test-Unit tests are simply [Aff](https://github.com/slamdata/purescript-aff) actions, which can either succeed (test passed) or fail (test did not pass). The type for these tests is `Test`, which is just an alias for `Aff Unit`.
 
-The `Test.Unit.Assert` module contains a number of functions for
-making common assertions. The most straightforward is `assert`, which
-takes a failure message and a boolean, and if the boolean is true, it
-produces a `Test` which immediately succeeds. If the boolean is false,
-you get a `Test` which fails with the provided error message.
+The `Test.Unit.Assert` module contains a number of functions for making common assertions. The most straightforward is `assert`, which takes a failure message and a boolean, and if the boolean is true, it produces a `Test` which immediately succeeds. If the boolean is false, you get a `Test` which fails with the provided error message.
 
-Because tests are really just `Aff`s, you can perform any `Aff` inside
-a do block, allowing you to easily test asynchronous code.
+Because tests are really just `Aff`s, you can perform any `Aff` inside a do block, allowing you to easily test asynchronous code.
 
 ```purescript
 module Test.Main where
@@ -49,16 +41,11 @@ main = runTest do
         Assert.equal "can we read a file in 100ms?\n" file2Contents
 ```
 
-Run tests using [`pulp test`](https://github.com/bodil/pulp) or just
-by compiling with `--main Test.Main`.
+Run tests using [`pulp test`](https://github.com/bodil/pulp) or just by compiling with `--main Test.Main`.
 
 ## QuickCheck
 
-[purescript-quickcheck](https://github.com/purescript/purescript-quickcheck)
-tests can be run using the functions in the `Test.Unit.QuickCheck`
-module. It exports two functions, `quickCheck` and `quickCheck'`,
-which work like their QuickCheck counterparts, except they produce
-`Test` actions so they integrate cleanly with Test-Unit.
+[purescript-quickcheck](https://github.com/purescript/purescript-quickcheck) tests can be run using the functions in the `Test.Unit.QuickCheck` module. It exports two functions, `quickCheck` and `quickCheck'`, which work like their QuickCheck counterparts, except they produce `Test` actions so they integrate cleanly with Test-Unit.
 
 ```purescript
 module Test.Main where
@@ -81,45 +68,36 @@ main = runTest do
 
 ## Output Formats
 
-The `Test.Unit.Main.runTest` function will default to simple output of
-test results using `console.log` (the
-`Test.Unit.Output.Simple.runTest` test runner). If you're running on
-an ANSI colour capable terminal, it will use the
-`Test.Unit.Output.Fancy.runTest` test runner, which gets a little more
-colourful.
+The `Test.Unit.Main.runTest` function will default to simple output of test results using `console.log` (the `Test.Unit.Output.Simple.runTest` test runner). If you're running on an ANSI colour capable terminal, it will use the `Test.Unit.Output.Fancy.runTest` test runner, which gets a little more colourful.
 
-Additionally, if `Test.Unit.Main.runTest` notices the word `tap` or
-`--tap` on its command line, it will pick the
-`Test.Unit.Output.TAP.runTest` test runner, which outputs test results
-using the [TAP](https://testanything.org/) format. A number of TAP
-consumers are
-[available on NPM](https://www.npmjs.com/package/tape#pretty-reporters)
-to transform the test output. For instance, you could install the
-[tap-spec](https://github.com/scottcorgan/tap-spec) and run your tests
-like this: `pulp test tap | tap-spec`.
+Additionally, if `Test.Unit.Main.runTest` notices the word `tap` or `--tap` on its command line, it will pick the `Test.Unit.Output.TAP.runTest` test runner, which outputs test results using the [TAP](https://testanything.org/) format. A number of TAP consumers are [available on NPM](https://www.npmjs.com/package/tape#pretty-reporters) to transform the test output. For instance, you could install the [tap-spec](https://github.com/scottcorgan/tap-spec) and run your tests like this:
 
-You can also specify your own test runner using the
-`Test.Unit.Main.runTestWith` function, which takes a test runner as
-its first argument. So, if you want to force the TAP test runner,
-instead of `main = runTest do ...` you could use `main = runTestWith
-Test.Unit.Output.TAP.runTest do ...`. You could also supply your own
-custom test runner - study one of the existing test runners to learn
-how.
+```
+pulp test tap | tap-spec
+```
+
+or with `spago`:
+```
+spago test --node-args tap
+```
+
+You can also specify the test runner using the `Test.Unit.Main.runTestWith` function, which takes a test runner as its first argument. So, if you want to force the TAP test runner, replace:
+```purescript
+main = runTest do --...
+```
+with:
+```purescript
+main = run $ runTestWith Test.Unit.Output.TAP.runTest do --...
+```
+
+You may also supply your own custom test runner - study one of the existing test runners to learn how.
 
 ## Licence
 
 Copyright 2014 Bodil Stokke
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-Lesser General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this program. If not, see
-<http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU Lesser General Public License along with this program. If not, see <http://www.gnu.org/licenses/>.
