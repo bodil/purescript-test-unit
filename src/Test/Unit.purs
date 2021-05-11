@@ -22,7 +22,11 @@ module Test.Unit
   , countSkippedTests
   , keepErrors
   , describe
+  , fdescribe
+  , xdescribe
   , it
+  , fit
+  , xit
   ) where
 
 import Prelude
@@ -150,7 +154,7 @@ filterEmptyNodes = substFree go
     isEmpty t = execState (foldFree empty t) true
 
     empty :: TestF ~> State Boolean
-    empty tg@(TestGroup (Group _ t) _ _ r) = modify (conj $ isEmpty t) $> r
+    empty (TestGroup (Group _ t) _ _ r) = modify (conj $ isEmpty t) $> r
     empty (TestUnit _ _ _ _ r) = modify (conj false) $> r
     empty (SkipUnit _ r) = pure r
 
@@ -183,7 +187,7 @@ filterTests t =
         = if un Skip s
             then skipUnit tg a
             else liftF $ TestGroup (Group n (substFree (go o) t')) s o a
-      go inOnly tu@(TestUnit n s o t' a)
+      go inOnly tu@(TestUnit _ s o _ a)
         = case un Only (os `implies` inOnly && ot `implies` o) && not (un Skip s) of
             true  -> liftF tu
             false -> skipUnit tu a
@@ -202,17 +206,17 @@ type TestList = List (Tuple (List String) (Test))
 walkSuite :: (List String -> Either String (Tuple String Test) -> Aff Unit) -> TestSuite -> Aff TestList
 walkSuite runItem tests = do
   coll <- new Nil
-  let walkItem path group@(TestGroup (Group label content) skip only rest) = do
+  let walkItem path (TestGroup (Group label content) _ _ rest) = do
         runItem path $ Left label
         runFreeM (walkItem (snoc path label)) content
         pure rest
-      walkItem path t@(TestUnit label skip only aff rest) = do
+      walkItem path (TestUnit label _ _ aff rest) = do
         fiber <- suspendAff aff
         cs <- take coll
         put (Cons (Tuple (snoc path label) $ joinFiber fiber) cs) coll
         runItem path $ Right $ Tuple label $ joinFiber fiber
         pure rest
-      walkItem path (SkipUnit _ rest) = do
+      walkItem _ (SkipUnit _ rest) = do
         pure rest
   runFreeM (walkItem Nil) tests
   res <- take coll
