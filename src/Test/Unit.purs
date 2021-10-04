@@ -22,7 +22,11 @@ module Test.Unit
   , countSkippedTests
   , keepErrors
   , describe
+  , fdescribe
+  , xdescribe
   , it
+  , fit
+  , xit
   ) where
 
 import Prelude
