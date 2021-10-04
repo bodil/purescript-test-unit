@@ -23,7 +23,6 @@
     "purescript-free": "^6.0.0",
     "purescript-strings": "^5.0.0",
     "purescript-lists": "^6.0.0",
-    "purescript-js-timers": "^5.0.0",
     "purescript-avar": "^4.0.0"
   }
 }
