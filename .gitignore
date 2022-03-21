@@ -3,3 +3,4 @@
 /output/
 /.pulp-cache
 *.tix
+.spago/
