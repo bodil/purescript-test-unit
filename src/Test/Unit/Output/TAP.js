@@ -1,6 +1,6 @@
 //module Test.Unit.Output.TAP
 
-exports.requested = (function() {
+export var requested = (function() {
   try {
     if (process.argv.indexOf("--tap") >= 0
         || process.argv.indexOf("tap") >= 0) {
