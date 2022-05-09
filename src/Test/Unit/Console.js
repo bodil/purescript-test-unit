@@ -5,9 +5,9 @@
 
 var hasStderr;
 try { hasStderr = !!process.stderr; } catch (e) { hasStderr = false; }
-exports.hasStderr = hasStderr;
+export { hasStderr };
 
-var hasColours = (function() {
+export var hasColours = (function() {
   if (typeof process === "undefined") {
     return false;
   }
@@ -25,43 +25,42 @@ var hasColours = (function() {
   }
   return false;
 })();
-exports.hasColours = hasColours;
 
-exports.consoleLog = function consoleLog(s) {
+export function consoleLog(s) {
   return function() {
     console.log(s);
   };
 };
-exports.consoleError = function consoleError(s) {
+export function consoleError(s) {
   return function() {
     console.error(s);
   };
 };
-exports.savePos = function savePos() {
+export function savePos() {
   process.stderr.write("\x1b[s");
 };
-exports.restorePos = function restorePos() {
+export function restorePos() {
   process.stderr.write("\x1b[u");
 };
-exports.eraseLine = function eraseLine() {
+export function eraseLine() {
   process.stderr.write("\x1b[K");
 };
-exports.print = function print(s) {
+export function print(s) {
   return function() {
     process.stderr.write("\x1b[33m" + s + "\x1b[0m");
   };
 };
-exports.printLabel = function printLabel(s) {
+export function printLabel(s) {
   return function() {
     process.stderr.write("\x1b[33;1m" + s + "\x1b[0m");
   };
 };
-exports.printFail = function printFail(s) {
+export function printFail(s) {
   return function() {
     process.stderr.write("\x1b[31;1m" + s + "\x1b[0m");
   };
 };
-exports.printPass = function printPass(s) {
+export function printPass(s) {
   return function() {
     process.stderr.write("\x1b[32m" + s + "\x1b[0m");
   };
