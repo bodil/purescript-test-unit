@@ -76,7 +76,7 @@ derive instance newtypeOnly :: Newtype Only _
 instance showOnly :: Show Only where
   show (Only b) = show b
 
-instance haytingAlgebraOnly :: HeytingAlgebra Only where
+instance heytingAlgebraOnly :: HeytingAlgebra Only where
   ff = Only false
   tt = Only true
   implies = over2 Only implies
