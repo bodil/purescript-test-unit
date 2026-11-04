@@ -3,3 +3,5 @@
 /output/
 /.pulp-cache
 *.tix
+/.spago/
+/spago.lock

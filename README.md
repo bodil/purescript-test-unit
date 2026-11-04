@@ -49,8 +49,7 @@ main = runTest do
         Assert.equal "can we read a file in 100ms?\n" file2Contents
 ```
 
-Run tests using [`pulp test`](https://github.com/bodil/pulp) or just
-by compiling with `--main Test.Main`.
+Run tests using [`spago test`](https://github.com/purescript/spago).
 
 ## QuickCheck
 
@@ -96,7 +95,7 @@ consumers are
 [available on NPM](https://www.npmjs.com/package/tape#pretty-reporters)
 to transform the test output. For instance, you could install the
 [tap-spec](https://github.com/scottcorgan/tap-spec) and run your tests
-like this: `pulp test tap | tap-spec`.
+like this: `spago test -- tap | tap-spec`.
 
 You can also specify your own test runner using the
 `Test.Unit.Main.runTestWith` function, which takes a test runner as
